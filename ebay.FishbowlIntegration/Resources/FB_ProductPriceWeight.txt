@@ -1,0 +1,8 @@
+select
+
+product.num,
+CAST(0 as double precision) as qty,
+product.price,
+product.weight
+
+from product

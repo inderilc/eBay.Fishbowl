@@ -1,0 +1,8 @@
+select
+
+product.num,
+0 as QTY,
+product.price,
+product.weight
+
+from product

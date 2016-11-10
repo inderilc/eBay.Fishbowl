@@ -1,0 +1,10 @@
+SELECT
+ship.num SNUM,
+so.CUSTOMERPO as CPO,
+LIST(distinct shipcarton.TRACKINGNUM) as TRACKINGNUM
+
+from SHIP
+    join so on so.id = ship.SOID
+    join shipcarton on shipcarton.shipid = ship.ID
+where ship.DATESHIPPED > @dte  
+group by 1,2    

@@ -1,0 +1,6 @@
+select first 1 
+    customer.name 
+from CONTACT     
+    join customer on customer.accountid = contact.ACCOUNTID 
+where contact.DATUS = @eml
+and contact.typeid = 60 /*Email*/

@@ -33,9 +33,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.1.50.2\lib\net451\Dapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="eBay.Service, Version=3.981.0.0, Culture=neutral, PublicKeyToken=1d9d786a5932eaf0, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>libs\eBay.Service.dll</HintPath>
+    </Reference>
+    <Reference Include="FirebirdSql.Data.FirebirdClient, Version=5.6.0.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
+      <HintPath>..\packages\FirebirdSql.Data.FirebirdClient.5.6.0\lib\net45\FirebirdSql.Data.FirebirdClient.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="FishbowlSDK.20152">
       <HintPath>libs\FishbowlSDK.20152.dll</HintPath>
@@ -59,6 +67,7 @@
   <ItemGroup>
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Controller\eBayController.cs" />
+    <Compile Include="Controller\FishbowlController.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Map\DataMappers.cs" />
     <Compile Include="Models\FishbowlModels.cs" />
@@ -70,9 +79,15 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SQL\FB.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FB.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -81,7 +96,36 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="SQL\FB.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FB.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\test_file.txt.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_CountryAndState.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_FindCustomerByEmail.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_GetInventory.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_GetProductPrice.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_GetProductWeight.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_ProductPriceWeight.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FB_ShipmentsToUpdate.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

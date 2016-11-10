@@ -10,6 +10,9 @@ using eBay.Service.Core.Sdk;
 using eBay.Service.Core.Soap;
 using eBay.Service;
 using eBay.Service.Util;
+using eBay.FishbowlIntegration.Models;
+using eBay.FishbowlIntegration.Map;
+using eBay.FishbowlIntegration.Controller;
 
 namespace ebay.FishbowlIntegration.Controller
 {
@@ -19,7 +22,7 @@ namespace ebay.FishbowlIntegration.Controller
         private ApiContext context;
         public event LogMsg OnLog;
         public delegate void LogMsg(String msg);
-
+        private FishbowlController fb { get; set; }
         public eBayController(Config cfg)
         {
             this.cfg = cfg;
@@ -40,15 +43,54 @@ namespace ebay.FishbowlIntegration.Controller
             Log("Orders Downloaded: " + orders.Count);
             if (orders.Count > 0)
             {
+                List<eBayFBOrder> ofOrders = DataMappers.MapNewOrders(cfg, orders);
+
+                Log("Validating Items in Fishbowl.");
+                ValidateItems(ofOrders);
+                Log("Items Validated");
+
+                Log("Creating Sales Orders Data.");
+                ValidateOrder(ofOrders, (Queue.Equals("P") ? "20" : "10 "));
+                Log("Finished Creating Sales Order Data.");
 
 
             }
                 string s = "1";
-
-
-
-
         }
+
+        private void ValidateOrder(List<eBayFBOrder> ofOrders, String OrderStatus)
+        {
+            foreach (var o in ofOrders)
+            {
+                o.FbOrder = DataMappers.MapSalesOrder(cfg, o, OrderStatus);
+            }
+        }
+        
+
+        private void ValidateItems(List<eBayFBOrder> ofOrders)
+        {
+       
+            var fbProds = fb.GetAllProducts();
+            foreach (var i in ofOrders)
+            {
+                //var list = i.eBayOrder.Items.Select(x => x.productcode);
+                var ta = i.eBayOrder.TransactionArray;
+                List<String> prods = new List<String>();
+               
+                foreach (TransactionType t in ta)
+                {
+                    prods.Add(t.Item.SKU);
+                }
+                
+                var except = prods.Except(fbProds);
+                if (except.Any())
+                {
+                    throw new Exception($"Products Not Found on Order [{i.eBayOrder.OrderID}] Please Create Them: " + String.Join(",", except));
+                }
+            }
+        }
+
+    
 
         private OrderTypeCollection allCompletedOrders()
         {
@@ -84,6 +126,8 @@ namespace ebay.FishbowlIntegration.Controller
 
         private void fetchOrders()
         {
+            //this is what we got from Ravi...Leaving it here for reference only...we will get rid of it eventually.
+
             try
             {
                 //create the context
