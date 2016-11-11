@@ -93,6 +93,11 @@ namespace eBay.FishbowlIntegration.Configuration
     {
         public string DefaultCarrier { get; set; }
         public string DefaultCustomer { get; set; }
+        public string Salesman { get; set; }
+        public string LocationGroup { get; set; }
+        public string ShipTerms { get; set; }
+        public string TaxName { get; set; }
+        public double TaxRate { get; set; }
         public Dictionary<String, String> CarrierSearchNames { get; set; }
 
     }

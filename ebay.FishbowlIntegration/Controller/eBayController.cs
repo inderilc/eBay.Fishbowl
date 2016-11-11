@@ -13,6 +13,8 @@ using eBay.Service.Util;
 using eBay.FishbowlIntegration.Models;
 using eBay.FishbowlIntegration.Map;
 using eBay.FishbowlIntegration.Controller;
+using FishbowlSDK;
+using FishbowlSDK.Extensions;
 
 namespace ebay.FishbowlIntegration.Controller
 {
@@ -26,10 +28,11 @@ namespace ebay.FishbowlIntegration.Controller
         public eBayController(Config cfg)
         {
             this.cfg = cfg;
+            this.fb = new FishbowlController(this.cfg);
             context = new ApiContext();
             this.context.ApiCredential.eBayToken = cfg.Store.ApiToken;
             this.context.SoapApiServerUrl = cfg.Store.StoreUrl;
-            context.Version = "981";
+            context.Version = "983";
             context.Site = SiteCodeType.Australia;
             context.ApiLogManager = new ApiLogManager();
             context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
@@ -44,19 +47,57 @@ namespace ebay.FishbowlIntegration.Controller
             if (orders.Count > 0)
             {
                 List<eBayFBOrder> ofOrders = DataMappers.MapNewOrders(cfg, orders);
-
+               
                 Log("Validating Items in Fishbowl.");
                 ValidateItems(ofOrders);
                 Log("Items Validated");
 
+                
                 Log("Creating Sales Orders Data.");
-                ValidateOrder(ofOrders, (Queue.Equals("P") ? "20" : "10 "));
+                ValidateOrder(ofOrders, "20");
                 Log("Finished Creating Sales Order Data.");
 
+                Log("Validate Carriers");
+                ValidateCarriers(ofOrders);
+                Log("Carriers Validated");
+
+                /*
+
+                var ret = CreateSalesOrders(ofOrders, Queue);
+
+                Log("Result: " + String.Join(Environment.NewLine, ret));
+
+                Log("Downloading Orders Finished");
+                */
+                /**/
 
             }
-                string s = "1";
+
         }
+        private void ValidateKits(List<eBayFBOrder> ofOrders)
+        {
+            foreach (var o in ofOrders)
+            {
+                FindUpdateKits(o.FbOrder);
+            }
+        }
+
+        private void FindUpdateKits(SalesOrder so)
+        {
+            var originalItems = new List<SalesOrderItem>(so.Items);
+            so.Items.Clear();
+            foreach (var i in originalItems)
+            {
+                so.AddItem(fb.api, i);
+            }
+        }
+
+        private void ValidateCarriers(List<eBayFBOrder> ofOrders)
+        {
+            // Do nothing.
+        }
+
+
 
         private void ValidateOrder(List<eBayFBOrder> ofOrders, String OrderStatus)
         {
@@ -79,7 +120,7 @@ namespace ebay.FishbowlIntegration.Controller
                
                 foreach (TransactionType t in ta)
                 {
-                    prods.Add(t.Item.SKU);
+                    prods.Add(t.Variation.SKU);
                 }
                 
                 var except = prods.Except(fbProds);
