@@ -139,12 +139,12 @@ namespace eBay.FishbowlIntegration.Controller
 
         }
 
-        public bool CheckSoExists(string customerPo)
+        public bool CheckSoExists(string eBayOrderID)
         {
-            String so =
-                db.Query<String>("select first 1 num from so where customerpo = @cpo", new { cpo = customerPo })
-                    .SingleOrDefault();
 
+            String so =
+                db.Query<String>("select first 1 c.ID from CUSTOMVARCHARLONG c join customfield f  on c.CUSTOMFIELDID=f.ID where (f.tableid = 1012013120 and f.name = 'Ebay Record No' and c.INFO=@cpo)", new { cpo = eBayOrderID })
+                    .SingleOrDefault();
             return !(string.IsNullOrEmpty(so));
         }
 

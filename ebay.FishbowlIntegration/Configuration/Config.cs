@@ -13,7 +13,6 @@ namespace eBay.FishbowlIntegration.Configuration
         public FishbowlConfig FB { get; set; }
         public StoreConfig Store { get; set; }
         public EmailConfig Email { get; set; }
-
         public static Config Load()
         {
             var cfg = LoadFromDisk(AppDomain.CurrentDomain.BaseDirectory + "config.json");
@@ -85,10 +84,30 @@ namespace eBay.FishbowlIntegration.Configuration
         public string DevId { get; set; } 
         public string CertId { get; set; } 
         public string StoreUrl { get; set; }
-        
+        public SyncOrderSettings SyncOrder { get; set; }
         public OrderSettings OrderSettings { get; set; }
     }
+    public class SyncOrderSettings
+    {
+        public Dictionary<String, String> OrderQueue { get; set; }
 
+        public Dictionary<String, String> PaymentMethodsToAccounts { get; set; }
+
+        public DateTime LastShipments { get; set; }
+        
+        public SyncOrderSettings()
+        {
+            this.OrderQueue = new Dictionary<string, string>()
+            {
+                {"P","0" },
+                {"Q","0" }
+            };
+            this.PaymentMethodsToAccounts = new Dictionary<string, string>()
+            {
+                { "TEST","TEST" }
+            };
+        }
+    }
     public class OrderSettings
     {
         public string DefaultCarrier { get; set; }

@@ -41,7 +41,7 @@ namespace eBay.FishbowlIntegration.Map
 
             salesOrder.Items = MapItems(cfg, ord.eBayOrder.TransactionArray).ToList();
            
-            salesOrder.Items.Add(AddSubTotal(salesOrder.Items.First()));
+            //salesOrder.Items.Add(AddSubTotal(salesOrder.Items.First()));
         
             //salesOrder.Items.Add(AddDiscountMiscSale(o.TransactionArray.Transaction.SellerDiscounts, salesOrder.Items.First()));
             /*
@@ -122,12 +122,12 @@ namespace eBay.FishbowlIntegration.Map
 
             // Add GST 
             //if (item.Taxes)
-                  item.TransactionPrice.Value = Math.Round(item.TransactionPrice.Value + (item.TransactionPrice.Value * .1), 2, MidpointRounding.AwayFromZero);
+                  //item.TransactionPrice.Value = Math.Round(item.TransactionPrice.Value + (item.TransactionPrice.Value * .1), 2, MidpointRounding.AwayFromZero);
             //
             return new SalesOrderItem
             {
                 Quantity = (double)item.QuantityPurchased,
-                ProductNumber = item.Variation.SKU,
+                ProductNumber = item.Variation?.SKU??item.Item.SKU,
                 ProductPrice = item.TransactionPrice.Value,
                 TotalPrice = item.QuantityPurchased* item.TransactionPrice.Value,
                 SOID = "-1",
@@ -162,7 +162,7 @@ namespace eBay.FishbowlIntegration.Map
 
             ret.Add(new CustomField()
             {
-                Name = "Requested Shipping:",
+                Name = "Requested Shipping",
                 Type = "CFT_LONG_TEXT",
                 Info = MapCarrier(cfg, ord.eBayOrder.ShippingServiceSelected.ShippingService)
             });
@@ -203,7 +203,7 @@ namespace eBay.FishbowlIntegration.Map
             
 
 
-            shippingAmount = Math.Round(shippingAmount * 1.1, 2);
+            //shippingAmount = Math.Round(shippingAmount * 1.1, 2);
 
             return new SalesOrderItem()
             {

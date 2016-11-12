@@ -42,7 +42,7 @@ namespace ebay.FishbowlIntegration.Controller
         public void DownloadOrders()
         {
             Log("Downloading Orders");
-            OrderTypeCollection orders = allCompletedOrders();
+            OrderTypeCollection orders = allCompletedOrders(cfg.Store.SyncOrder.LastShipments.ToString());
             Log("Orders Downloaded: " + orders.Count);
             if (orders.Count > 0)
             {
@@ -62,23 +62,76 @@ namespace ebay.FishbowlIntegration.Controller
                 Log("Carriers Validated");
 
                 Log("Kit Items");
-                ValidateKits(ofOrders);
+                //ValidateKits(ofOrders);
                 Log("Finished Kits.");
 
 
-                /*
+             
 
-                var ret = CreateSalesOrders(ofOrders, Queue);
+                var ret = CreateSalesOrders(ofOrders);
 
                 Log("Result: " + String.Join(Environment.NewLine, ret));
-
+                cfg.Store.SyncOrder.LastShipments = DateTime.Now;
                 Log("Downloading Orders Finished");
-                */
-                /**/
+                
 
             }
 
         }
+
+        private List<String> CreateSalesOrders(List<eBayFBOrder> ofOrders)
+        {
+            var ret = new List<String>();
+
+            foreach (var o in ofOrders)
+            {
+                String soNum;
+
+                bool soExists = fb.CheckSoExists(o.eBayOrder.OrderID.ToString());
+
+                if (!soExists)
+                {
+                    String msg = "";
+                    Double ordertotal;
+                    var result = fb.SaveSalesOrder(o.FbOrder, out soNum, out msg, out ordertotal);
+
+                    //xc.UpdateXC2FBDownloaded(o.XCOrder.orderid, soNum);
+
+                    try
+                    {
+                        if (result && o.FbOrder.Status.Equals("20")) // Only apply payments on Issued Orders.
+                        {
+                            DateTime dtPayment;
+                            bool dtParsed = DateTime.TryParse(o.eBayOrder.CreatedTime.Date.ToString(), out dtPayment);
+
+                            var payment = fb.MakePayment(soNum, o.eBayOrder.CheckoutStatus.PaymentMethod.ToString(), ordertotal, cfg.Store.SyncOrder.PaymentMethodsToAccounts, (dtParsed ? dtPayment : DateTime.Now)); // Use the Generated Order Total, and Payment Date
+                            ret.Add(payment);
+                        }
+                        else
+                        {
+                            ret.Add(msg);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ret.Add("Error With Payment. " + ex.Message);
+                    }
+                }
+                else
+                {
+                    ret.Add("SO Exists.");
+                }
+
+
+                //cfg.Store.SyncOrder.OrderQueue[QueueID] = o.eBayOrder.OrderID;
+
+                Config.Save(cfg);
+            }
+
+            return ret;
+        }
+
+
         private void ValidateKits(List<eBayFBOrder> ofOrders)
         {
             foreach (var o in ofOrders)
@@ -125,7 +178,7 @@ namespace ebay.FishbowlIntegration.Controller
                
                 foreach (TransactionType t in ta)
                 {
-                    prods.Add(t.Variation.SKU);
+                    prods.Add(t.Variation?.SKU??t.Item.SKU);
                 }
                 
                 var except = prods.Except(fbProds);
@@ -138,17 +191,19 @@ namespace ebay.FishbowlIntegration.Controller
 
     
 
-        private OrderTypeCollection allCompletedOrders()
+        private OrderTypeCollection allCompletedOrders(String LastOrderDownload)
         {
             OrderTypeCollection orders=new OrderTypeCollection();
             try
             {
+                DateTime dateOut;
                 GetOrdersCall getOrders = new GetOrdersCall(context);
                 getOrders.DetailLevelList = new DetailLevelCodeTypeCollection();
                 getOrders.DetailLevelList.Add(DetailLevelCodeType.ReturnAll);
-                
-                getOrders.CreateTimeFrom = new DateTime(2016, 11, 9);
-                getOrders.CreateTimeTo = new DateTime(2016, 11, 10);
+
+                DateTime.TryParse(LastOrderDownload, out dateOut);
+                getOrders.CreateTimeFrom = dateOut;
+                getOrders.CreateTimeTo = new DateTime(2016, 11, 12);
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
 
@@ -262,7 +317,7 @@ namespace ebay.FishbowlIntegration.Controller
                                 Console.WriteLine("Shipping Service Selected: " + order.ShippingServiceSelected.ShippingService);
 
                                 //Get Shipping Address - Address subject to change if the buyer has not completed checkout                      
-                                AddressType address = order.ShippingAddress;
+                                eBay.Service.Core.Soap.AddressType address = order.ShippingAddress;
                                 StringBuilder sAdd = new StringBuilder();
                                 sAdd = sAdd.Append(address.Name);
                                 if (address.Street != null && address.Street != "")
