@@ -127,7 +127,7 @@ namespace eBay.FishbowlIntegration.Map
             return new SalesOrderItem
             {
                 Quantity = (double)item.QuantityPurchased,
-                ProductNumber = item.Variation?.SKU??item.Item.SKU,
+                ProductNumber = item.Variation?.SKU ?? item.Item.SKU,
                 ProductPrice = item.TransactionPrice.Value,
                 TotalPrice = item.QuantityPurchased* item.TransactionPrice.Value,
                 SOID = "-1",

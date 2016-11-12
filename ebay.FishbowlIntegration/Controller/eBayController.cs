@@ -61,9 +61,9 @@ namespace ebay.FishbowlIntegration.Controller
                 ValidateCarriers(ofOrders);
                 Log("Carriers Validated");
 
-                Log("Kit Items");
-                //ValidateKits(ofOrders);
-                Log("Finished Kits.");
+                //Log("Kit Items");
+               // ValidateKits(ofOrders);
+               // Log("Finished Kits.");
 
 
              
