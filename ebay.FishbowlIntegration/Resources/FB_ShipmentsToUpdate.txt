@@ -1,10 +1,12 @@
-SELECT
-ship.num SNUM,
+select so.num as sonum,
 so.CUSTOMERPO as CPO,
-LIST(distinct shipcarton.TRACKINGNUM) as TRACKINGNUM
-
-from SHIP
-    join so on so.id = ship.SOID
-    join shipcarton on shipcarton.shipid = ship.ID
-where ship.DATESHIPPED > @dte  
-group by 1,2    
+cvc.INFO as ordernum,
+shipcarton.TRACKINGNUM as TRACKINGNUM,
+c.NAME as CarrierName
+from CUSTOMVARCHARLONG cvc
+join customfield cf on cf.ID = cvc.customfieldid
+join so on so.id=cvc.RECORDID
+join ship s on s.SOID = so.ID
+join shipcarton on shipcarton.shipid = s.ID
+join CARRIER c on c.ID = SHIPCARTON.CARRIERID
+where (cf.tableid = 1012013120 and cf.name = 'Ebay Record No' and cvc.info !='' and shipcarton.TRACKINGNUM !='')

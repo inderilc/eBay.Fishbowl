@@ -8,6 +8,7 @@ using eBay.FishbowlIntegration.Configuration;
 using eBay.Service.Call;
 using eBay.Service.Core.Sdk;
 using eBay.Service.Core.Soap;
+
 using eBay.Service;
 using eBay.Service.Util;
 using eBay.FishbowlIntegration.Models;
@@ -39,159 +40,8 @@ namespace ebay.FishbowlIntegration.Controller
             context.ApiLogManager.EnableLogging = true;
 
         }
-        public void DownloadOrders()
-        {
-            Log("Downloading Orders");
-            OrderTypeCollection orders = allCompletedOrders(cfg.Store.SyncOrder.LastShipments.ToString());
-            Log("Orders Downloaded: " + orders.Count);
-            if (orders.Count > 0)
-            {
-                List<eBayFBOrder> ofOrders = DataMappers.MapNewOrders(cfg, orders);
-               
-                Log("Validating Items in Fishbowl.");
-                ValidateItems(ofOrders);
-                Log("Items Validated");
-
-                
-                Log("Creating Sales Orders Data.");
-                ValidateOrder(ofOrders, "20");
-                Log("Finished Creating Sales Order Data.");
-
-                Log("Validate Carriers");
-                ValidateCarriers(ofOrders);
-                Log("Carriers Validated");
-
-                //Log("Kit Items");
-               // ValidateKits(ofOrders);
-               // Log("Finished Kits.");
-
-
-             
-
-                var ret = CreateSalesOrders(ofOrders);
-
-                Log("Result: " + String.Join(Environment.NewLine, ret));
-                cfg.Store.SyncOrder.LastShipments = DateTime.Now;
-                Log("Downloading Orders Finished");
-                
-
-            }
-
-        }
-
-        private List<String> CreateSalesOrders(List<eBayFBOrder> ofOrders)
-        {
-            var ret = new List<String>();
-
-            foreach (var o in ofOrders)
-            {
-                String soNum;
-
-                bool soExists = fb.CheckSoExists(o.eBayOrder.OrderID.ToString());
-
-                if (!soExists)
-                {
-                    String msg = "";
-                    Double ordertotal;
-                    var result = fb.SaveSalesOrder(o.FbOrder, out soNum, out msg, out ordertotal);
-
-                    //xc.UpdateXC2FBDownloaded(o.XCOrder.orderid, soNum);
-
-                    try
-                    {
-                        if (result && o.FbOrder.Status.Equals("20")) // Only apply payments on Issued Orders.
-                        {
-                            DateTime dtPayment;
-                            bool dtParsed = DateTime.TryParse(o.eBayOrder.CreatedTime.Date.ToString(), out dtPayment);
-
-                            var payment = fb.MakePayment(soNum, o.eBayOrder.CheckoutStatus.PaymentMethod.ToString(), ordertotal, cfg.Store.SyncOrder.PaymentMethodsToAccounts, (dtParsed ? dtPayment : DateTime.Now)); // Use the Generated Order Total, and Payment Date
-                            ret.Add(payment);
-                        }
-                        else
-                        {
-                            ret.Add(msg);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ret.Add("Error With Payment. " + ex.Message);
-                    }
-                }
-                else
-                {
-                    ret.Add("SO Exists.");
-                }
-
-
-                //cfg.Store.SyncOrder.OrderQueue[QueueID] = o.eBayOrder.OrderID;
-
-                Config.Save(cfg);
-            }
-
-            return ret;
-        }
-
-
-        private void ValidateKits(List<eBayFBOrder> ofOrders)
-        {
-            foreach (var o in ofOrders)
-            {
-                FindUpdateKits(o.FbOrder);
-            }
-        }
-
-        private void FindUpdateKits(SalesOrder so)
-        {
-            var originalItems = new List<SalesOrderItem>(so.Items);
-            so.Items.Clear();
-            foreach (var i in originalItems)
-            {
-                so.AddItem(fb.api, i);
-            }
-        }
-
-        private void ValidateCarriers(List<eBayFBOrder> ofOrders)
-        {
-            // Do nothing.
-        }
-
-
-
-        private void ValidateOrder(List<eBayFBOrder> ofOrders, String OrderStatus)
-        {
-            foreach (var o in ofOrders)
-            {
-                o.FbOrder = DataMappers.MapSalesOrder(cfg, o, OrderStatus);
-            }
-        }
         
-
-        private void ValidateItems(List<eBayFBOrder> ofOrders)
-        {
-       
-            var fbProds = fb.GetAllProducts();
-            foreach (var i in ofOrders)
-            {
-                //var list = i.eBayOrder.Items.Select(x => x.productcode);
-                var ta = i.eBayOrder.TransactionArray;
-                List<String> prods = new List<String>();
-               
-                foreach (TransactionType t in ta)
-                {
-                    prods.Add(t.Variation?.SKU??t.Item.SKU);
-                }
-                
-                var except = prods.Except(fbProds);
-                if (except.Any())
-                {
-                    throw new Exception($"Products Not Found on Order [{i.eBayOrder.OrderID}] Please Create Them: " + String.Join(",", except));
-                }
-            }
-        }
-
-    
-
-        private OrderTypeCollection allCompletedOrders(String LastOrderDownload)
+        public OrderTypeCollection allCompletedOrders(String LastOrderDownload)
         {
             OrderTypeCollection orders=new OrderTypeCollection();
             try
@@ -206,6 +56,7 @@ namespace ebay.FishbowlIntegration.Controller
                 getOrders.CreateTimeTo = new DateTime(2016, 11, 12);
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
+                
 
                 getOrders.Execute();
                 
@@ -218,13 +69,141 @@ namespace ebay.FishbowlIntegration.Controller
                     }
                 }
             }
+
             catch (Exception ex)
             {
                
             }
             return orders;
         }
+        
+        public bool UpdateOrderStatusComplete(int orderid)
+        {
+            
 
+            //need to be implemented
+            
+            return true;
+        }
+
+        public bool UpdateShipmentStatus(String orderid, String TrackingNum, String CarrierName)
+        {
+            CompleteSaleCall api = new CompleteSaleCall();
+            api.OrderID = orderid.ToString();
+            api.Shipped = true;
+
+            api.Shipment = new ShipmentType();
+            api.Shipment.ShipmentTrackingDetails = new ShipmentTrackingDetailsTypeCollection();
+
+            ShipmentTrackingDetailsType shpmnt = new ShipmentTrackingDetailsType();
+            shpmnt.ShipmentTrackingNumber = TrackingNum;
+            shpmnt.ShippingCarrierUsed = CarrierName;
+
+            api.Shipment.ShipmentTrackingDetails.Add(shpmnt);
+
+            //Specify time in GMT. This is an optional field
+            //If you don't specify a value for the ShippedTime, it will be defaulted to the time at which the call was made
+            api.Shipment.ShippedTime = new DateTime(2013, 7, 23, 10, 0, 0).ToUniversalTime();
+
+            //call the Execute method
+            api.Execute();
+            return (api.ApiResponse.Ack != AckCodeType.Failure);
+            
+        }
+
+        public Dictionary<String, Double> GetInventory()
+        {
+
+            //broken code, need to figure out how to GetInventorySellingRequest fully implemented
+
+            GetMyeBaySellingRequestType request = new GetMyeBaySellingRequestType();
+            
+            request.Any
+
+            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.avail);
+        }
+
+        public bool UpdateProductInventory(string eBayID, double qty)
+        {
+            ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
+            ItemType item = new ItemType();
+            item.ItemID = eBayID;
+            item.Currency = CurrencyCodeType.USD;
+            
+            item.Quantity = Convert.ToInt32(qty);
+            reviseFP.Item = item;
+            reviseFP.Execute();
+
+            return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
+        }
+        
+        public Dictionary<String, Double> GetProductPrice()
+        {
+            //broken code...need to figure out how to set price along with IDs/ebay skus for active listings?
+
+            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.list_price);
+        }
+
+        public Dictionary<String, Double> GetProductWeight()
+        {
+            //broken code...need to figure out how to get weight along with IDs/ebay skus for active listings?
+
+            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.weight);
+        }
+
+        public bool UpdateProductWeight(string eBayID, double weight)
+        {
+            //broken code...need to figure out how to set weight
+
+
+            ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
+            ItemType item = new ItemType();
+            item.ItemID = eBayID;
+            
+            ShippingPackageDetailsType shipping = new ShippingPackageDetailsType();
+
+            reviseFP.Item = item;
+            reviseFP.Execute();
+
+            return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
+        }
+
+        public bool UpdateProductPrice(string eBayID, double price)
+        {
+            
+            ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
+            ItemType item = new ItemType();
+            
+            item.ItemID = eBayID;
+            item.Currency = CurrencyCodeType.USD;
+            item.StartPrice = new AmountType();
+            item.StartPrice.Value = Convert.ToDouble(price);
+            item.StartPrice.currencyID = CurrencyCodeType.AUD;
+            reviseFP.Item = item;
+            reviseFP.Execute();
+           
+            return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
+        }
+        public bool UpdateProductPriceQty(string eBayID, double price, int qty)
+        {
+            ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
+            ItemType item = new ItemType();
+            item.ItemID = eBayID;
+            item.Currency = CurrencyCodeType.USD;
+            item.StartPrice = new AmountType();
+            item.StartPrice.Value = Convert.ToDouble(price);
+            item.StartPrice.currencyID = CurrencyCodeType.USD;
+            item.Quantity = qty;
+            reviseFP.Item = item;
+            reviseFP.Execute();
+
+            return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
+
+        }
+        
         private void fetchOrders()
         {
             //this is what we got from Ravi...Leaving it here for reference only...we will get rid of it eventually.

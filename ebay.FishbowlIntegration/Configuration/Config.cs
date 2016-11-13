@@ -10,6 +10,7 @@ namespace eBay.FishbowlIntegration.Configuration
 {
     public class Config
     {
+        public ActionsConfig Actions { get; set; }
         public FishbowlConfig FB { get; set; }
         public StoreConfig Store { get; set; }
         public EmailConfig Email { get; set; }
@@ -39,7 +40,7 @@ namespace eBay.FishbowlIntegration.Configuration
                 {
                     FB = new FishbowlConfig(),
                     Store = new StoreConfig(),
-
+                    Actions = new ActionsConfig(),
                 };
             }
         }
@@ -120,6 +121,16 @@ namespace eBay.FishbowlIntegration.Configuration
         public Dictionary<String, String> CarrierSearchNames { get; set; }
 
     }
+
+    public class ActionsConfig
+    {
+        public bool SyncOrders { get; set; }
+        public bool SyncInventory { get; set; }
+        public bool SyncShipments { get; set; }
+        public bool SyncProductWeight { get; set; }
+        public bool SyncProductPrice { get; set; }
+    }
+
 
     public class EmailConfig
     {

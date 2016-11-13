@@ -38,8 +38,10 @@ namespace eBay.FishbowlIntegration.Models
 
     public class Shipment
     {
-        public String SNUM { get; set; }
+        public String SONUM { get; set; }
         public String CPO { get; set; }
+        public String ORDERNUM { get; set; }
         public String TRACKINGNUM { get; set; }
+        public String CARRIERNAME { get; set; }
     }
 }
