@@ -111,27 +111,71 @@ namespace ebay.FishbowlIntegration.Controller
             
         }
 
-        public Dictionary<String, Double> GetInventory()
+        public ItemTypeCollection GetInventory()
         {
+            ItemTypeCollection ret = new ItemTypeCollection();
+            GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
-            //broken code, need to figure out how to GetInventorySellingRequest fully implemented
+            oGetMyeBaySellingCall.ActiveList = new ItemListCustomizationType();
+            oGetMyeBaySellingCall.ActiveList.Pagination = new PaginationType();
+            oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPage = 50;
+            oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPageSpecified = true;
+            oGetMyeBaySellingCall.ActiveList.Pagination.PageNumber = 1;
+            oGetMyeBaySellingCall.ActiveList.Pagination.PageNumberSpecified = true;
+            oGetMyeBaySellingCall.ActiveList.Sort = ItemSortTypeCodeType.StartTime;
+            oGetMyeBaySellingCall.ActiveList.SortSpecified = true;
 
-            //GetMyeBaySellingRequestType request = new GetMyeBaySellingRequestType();
+            try
+            {
+                oGetMyeBaySellingCall.Execute();
 
-            //request.Any
+                foreach (ItemType oItem in oGetMyeBaySellingCall.ActiveListReturn.ItemArray)
+                {
 
-            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.avail);
-            return new Dictionary<string, double>();
+                    if (oItem.Variations?.Variation.Count > 0)
+                    {
+                        foreach (VariationType vr in oItem.Variations.Variation)
+                        {
+                            ItemType i = new ItemType();
+                            i.ItemID = oItem.ItemID;
+                            i.SKU = vr.SKU;
+                            i.Quantity = vr.Quantity;
+                            i.StartPrice = vr.StartPrice;
+                            i.ShippingDetails.CalculatedShippingRate.WeightMajor = oItem.ShippingDetails.CalculatedShippingRate.WeightMajor;
+                            i.ShippingDetails.CalculatedShippingRate.WeightMinor = oItem.ShippingDetails.CalculatedShippingRate.WeightMinor;
+                            ret.Add(i);
+                        }
+                    }
+                    else
+                    {
+                        ret.Add(oItem);
+                    }
+                }
+            }
+            catch (ApiException oApiEx)
+            {
+                Console.WriteLine(oApiEx.Message);
+            }
+            catch (SdkException oSdkEx)
+            {
+                Console.WriteLine(oSdkEx.Message);
+
+            }
+            catch (Exception oEx)
+            {
+                Console.WriteLine(oEx.Message);
+            }
+
+            return ret;
         }
 
-        public bool UpdateProductInventory(string eBayID, double qty)
+        public bool UpdateProductInventory(string eBayID, string sku, int qty)
         {
             ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
             ItemType item = new ItemType();
             item.ItemID = eBayID;
-            item.Currency = CurrencyCodeType.USD;
-            
+            item.Currency = CurrencyCodeType.AUD;
+            item.SKU = sku;
             item.Quantity = Convert.ToInt32(qty);
             reviseFP.Item = item;
             reviseFP.Execute();
@@ -139,50 +183,41 @@ namespace ebay.FishbowlIntegration.Controller
             return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
         }
         
-        public Dictionary<String, Double> GetProductPrice()
+        public ItemTypeCollection GetProductPrice()
         {
-            //broken code...need to figure out how to set price along with IDs/ebay skus for active listings?
-
-            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.list_price);
-            return new Dictionary<string, double>();
+            return GetInventory();
         }
 
-        public Dictionary<String, Double> GetProductWeight()
+        public ItemTypeCollection GetProductWeight()
         {
-            //broken code...need to figure out how to get weight along with IDs/ebay skus for active listings?
-
-            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.weight);
-
-            return new Dictionary<string, double>();
+            
+            return GetInventory();
         }
 
-        public bool UpdateProductWeight(string eBayID, double weight)
+        public bool UpdateProductWeight(string eBayID, string sku, decimal weight)
         {
-            //broken code...need to figure out how to set weight
-
-
+            
             ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
             ItemType item = new ItemType();
             item.ItemID = eBayID;
+            item.SKU = sku;
+            item.ShippingDetails.CalculatedShippingRate.WeightMajor.Value = weight;
             
-            ShippingPackageDetailsType shipping = new ShippingPackageDetailsType();
-
             reviseFP.Item = item;
             reviseFP.Execute();
 
             return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
         }
 
-        public bool UpdateProductPrice(string eBayID, double price)
+        public bool UpdateProductPrice(string eBayID, string sku, double price)
         {
             
             ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
             ItemType item = new ItemType();
             
             item.ItemID = eBayID;
-            item.Currency = CurrencyCodeType.USD;
+            item.SKU = sku;
+            item.Currency = CurrencyCodeType.AUD;
             item.StartPrice = new AmountType();
             item.StartPrice.Value = Convert.ToDouble(price);
             item.StartPrice.currencyID = CurrencyCodeType.AUD;
@@ -196,10 +231,10 @@ namespace ebay.FishbowlIntegration.Controller
             ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
             ItemType item = new ItemType();
             item.ItemID = eBayID;
-            item.Currency = CurrencyCodeType.USD;
+            item.Currency = CurrencyCodeType.AUD;
             item.StartPrice = new AmountType();
             item.StartPrice.Value = Convert.ToDouble(price);
-            item.StartPrice.currencyID = CurrencyCodeType.USD;
+            item.StartPrice.currencyID = CurrencyCodeType.AUD;
             item.Quantity = qty;
             reviseFP.Item = item;
             reviseFP.Execute();

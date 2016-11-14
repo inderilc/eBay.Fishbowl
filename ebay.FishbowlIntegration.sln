@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ebay.FishbowlIntegration", "ebay.FishbowlIntegration\ebay.FishbowlIntegration.csproj", "{4C52127F-7944-40AE-8F61-86B515EAB91B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBayFBDesktop", "ebay.FishbowlIntegration\eBayFBDesktop\eBayFBDesktop.csproj", "{070B4884-27D8-42B2-B9FA-CFD347B4E75B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4C52127F-7944-40AE-8F61-86B515EAB91B} = {4C52127F-7944-40AE-8F61-86B515EAB91B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

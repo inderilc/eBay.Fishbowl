@@ -42,6 +42,14 @@ namespace ebay.FishbowlIntegration
         public eBayIntegration(Config cfg)
         {
             this.cfg = cfg;
+            if (ebc == null)
+            {
+                ebc = new eBayController(cfg);
+            }
+            if (fb == null)
+            {
+                fb = new FishbowlController(cfg);
+            }
         }
 
 
@@ -215,11 +223,16 @@ namespace ebay.FishbowlIntegration
         public List<SimpleList> ItemInFBXC()
         {
             InitConnections();
-            var cartProducts = ebc.GetInventory();
+            ItemTypeCollection eBayProducts = ebc.GetInventory();
             var fbProducts = fb.GetInventory();
 
             var allItems = new List<String>();
-            allItems.AddRange(cartProducts.Keys);
+
+            foreach (ItemType itm in eBayProducts)
+            {
+                allItems.Add(itm.SKU);
+            }
+
             allItems.AddRange(fbProducts.Keys);
 
             var distinctProducts = allItems.Distinct();
@@ -230,7 +243,12 @@ namespace ebay.FishbowlIntegration
 
             foreach (var x in ret)
             {
-                x.InEB = cartProducts.ContainsKey(x.Name);
+                foreach (ItemType item in eBayProducts)
+                {
+                    if (item.SKU == x.Name)
+                        x.InEB = true;
+                }
+
                 x.InFB = fbProducts.ContainsKey(x.Name);
             }
 
@@ -241,37 +259,37 @@ namespace ebay.FishbowlIntegration
         {
             Log("Updating Product Weight");
 
-            var ocProducts = ebc.GetProductWeight();
+            ItemTypeCollection eBayProducts = ebc.GetProductWeight();
 
             var fbProducts = fb.GetProductWeight();
 
-            var toUpdate = new Dictionary<String, Double>();
-            foreach (var kvp in ocProducts)
+            var toUpdate = new ItemTypeCollection();
+            foreach (ItemType kvp in eBayProducts)
             {
-                if (fbProducts.ContainsKey(kvp.Key))
+                if (fbProducts.ContainsKey(kvp.SKU))
                 {
-                    var dbl = fbProducts[kvp.Key];
-                    if (dbl != kvp.Value)
+                    double dbl = fbProducts[kvp.SKU];
+                    if (!dbl.Equals(kvp.ShippingDetails.CalculatedShippingRate.WeightMajor.Value))
                     {
-                        toUpdate.Add(kvp.Key, fbProducts[kvp.Key]);
+                     toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, ShippingDetails = new ShippingDetailsType() { CalculatedShippingRate = new CalculatedShippingRateType() { WeightMajor= new MeasureType() { Value = Convert.ToDecimal(dbl) } } } });
                     }
                 }
             }
             if (toUpdate.Count > 0)
             {
                 Log("Updating Product Weight: " + toUpdate.Count);
-                foreach (var i in toUpdate)
+                foreach (ItemType i in toUpdate)
                 {
                     String sql = "";
-                    var updated = ebc.UpdateProductWeight(i.Key, i.Value);
+                    var updated = ebc.UpdateProductWeight(i.ItemID, i.SKU, i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value);
                     Log("SQL: " + sql);
                     if (updated)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Weight: [{i.Value}] OK");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor}] OK");
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Weight: [{i.Value}] FAILED");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor}] FAILED");
                     }
                 }
             }
@@ -287,37 +305,37 @@ namespace ebay.FishbowlIntegration
         {
             Log("Updating Product Price");
 
-            var ocProducts = ebc.GetProductPrice();
+            var eBayProducts = ebc.GetProductPrice();
 
             var fbProducts = fb.GetProductPrice();
 
-            var toUpdate = new Dictionary<String, Double>();
-            foreach (var kvp in ocProducts)
+            var toUpdate = new ItemTypeCollection();
+            foreach (ItemType kvp in eBayProducts)
             {
-                if (fbProducts.ContainsKey(kvp.Key))
+                if (fbProducts.ContainsKey(kvp.SKU))
                 {
-                    var dbl = fbProducts[kvp.Key];
-                    if (dbl != kvp.Value)
+                    var dbl = fbProducts[kvp.SKU];
+                    if (dbl != kvp.StartPrice.Value)
                     {
-                        toUpdate.Add(kvp.Key, fbProducts[kvp.Key]);
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, StartPrice = new AmountType() { Value=dbl} });
                     }
                 }
             }
             if (toUpdate.Count > 0)
             {
                 Log("Updating Product Price: " + toUpdate.Count);
-                foreach (var i in toUpdate)
+                foreach (ItemType i in toUpdate)
                 {
                     String sql = "";
-                    var updated = ebc.UpdateProductPrice(i.Key, i.Value);
+                    var updated = ebc.UpdateProductPrice(i.ItemID,i.SKU,i.StartPrice.Value);
                     Log("SQL: " + sql);
                     if (updated)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Price: [{i.Value}] OK");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.StartPrice.Value}] OK");
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Price: [{i.Value}] FAILED");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.StartPrice.Value}] FAILED");
                     }
                 }
             }
@@ -333,35 +351,35 @@ namespace ebay.FishbowlIntegration
         {
             Log("Updating Inventory");
 
-            var ocProducts = ebc.GetInventory();
+            ItemTypeCollection eBayProducts = ebc.GetInventory();
 
             var fbProducts = fb.GetInventory();
 
-            var toUpdate = new Dictionary<String, double>();
-            foreach (var kvp in ocProducts)
+            var toUpdate = new ItemTypeCollection();
+            foreach (ItemType kvp in eBayProducts)
             {
-                if (fbProducts.ContainsKey(kvp.Key))
+                if (fbProducts.ContainsKey(kvp.SKU))
                 {
-                    var dbl = fbProducts[kvp.Key];
-                    if (dbl != kvp.Value)
+                    var dbl = fbProducts[kvp.SKU];
+                    if (dbl != kvp.Quantity)
                     {
-                        toUpdate.Add(kvp.Key, fbProducts[kvp.Key]);
+                        toUpdate.Add(new ItemType(){ ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = Convert.ToInt32(dbl)});
                     }
                 }
             }
             if (toUpdate.Count > 0)
             {
                 Log("Updating Inventory: " + toUpdate.Count);
-                foreach (var i in toUpdate)
+                foreach (ItemType i in toUpdate)
                 {
-                    var updated = ebc.UpdateProductInventory(i.Key, i.Value);
+                    var updated = ebc.UpdateProductInventory(i.ItemID,i.SKU,i.Quantity);
                     if (updated)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Qty: [{i.Value}] OK");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.Key}] Qty: [{i.Value}] FAILED");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
                     }
                 }
             }
