@@ -113,6 +113,8 @@ namespace ebay.FishbowlIntegration.Controller
 
         public ItemTypeCollection GetInventory()
         {
+            //this functions returns (suppose to return) inventory data related to active listings --- might need some put some thought there, exactly what compononents needs to be returned and what is accesible/what is not
+
             ItemTypeCollection ret = new ItemTypeCollection();
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
@@ -141,8 +143,8 @@ namespace ebay.FishbowlIntegration.Controller
                             i.SKU = vr.SKU;
                             i.Quantity = vr.Quantity;
                             i.StartPrice = vr.StartPrice;
-                            i.ShippingDetails.CalculatedShippingRate.WeightMajor = oItem.ShippingDetails.CalculatedShippingRate.WeightMajor;
-                            i.ShippingDetails.CalculatedShippingRate.WeightMinor = oItem.ShippingDetails.CalculatedShippingRate.WeightMinor;
+                            //i.ShippingDetails.CalculatedShippingRate.WeightMajor = oItem.ShippingDetails.CalculatedShippingRate.WeightMajor; //need to figureout where exactly is the weight stored?
+                            //i.ShippingDetails.CalculatedShippingRate.WeightMinor = oItem.ShippingDetails.CalculatedShippingRate.WeightMinor;
                             ret.Add(i);
                         }
                     }
