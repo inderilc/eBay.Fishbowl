@@ -116,12 +116,13 @@ namespace ebay.FishbowlIntegration.Controller
 
             //broken code, need to figure out how to GetInventorySellingRequest fully implemented
 
-            GetMyeBaySellingRequestType request = new GetMyeBaySellingRequestType();
-            
-            request.Any
+            //GetMyeBaySellingRequestType request = new GetMyeBaySellingRequestType();
 
-            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.avail);
+            //request.Any
+
+            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.avail);
+            return new Dictionary<string, double>();
         }
 
         public bool UpdateProductInventory(string eBayID, double qty)
@@ -142,16 +143,19 @@ namespace ebay.FishbowlIntegration.Controller
         {
             //broken code...need to figure out how to set price along with IDs/ebay skus for active listings?
 
-            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.list_price);
+            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.list_price);
+            return new Dictionary<string, double>();
         }
 
         public Dictionary<String, Double> GetProductWeight()
         {
             //broken code...need to figure out how to get weight along with IDs/ebay skus for active listings?
 
-            var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
-            return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.weight);
+            //var data = cd.Query<List<XCProductInventory>>(SQL.XC.XC_ProductInventroy);
+            //return data.Data.ToDictionary<XCProductInventory, string, double>(x => x.productcode, x => x.weight);
+
+            return new Dictionary<string, double>();
         }
 
         public bool UpdateProductWeight(string eBayID, double weight)

@@ -34,7 +34,7 @@ namespace ebay.FishbowlIntegration
 
             var cfg = Config.Load();
             eBayController ebc = new eBayController(cfg);
-            DownloadOrders();
+            //DownloadOrders();
             string a = "0";
 
         }
@@ -263,7 +263,7 @@ namespace ebay.FishbowlIntegration
                 foreach (var i in toUpdate)
                 {
                     String sql = "";
-                    var updated = ebc.UpdateProductWeight(i.Key, i.Value, out sql);
+                    var updated = ebc.UpdateProductWeight(i.Key, i.Value);
                     Log("SQL: " + sql);
                     if (updated)
                     {
