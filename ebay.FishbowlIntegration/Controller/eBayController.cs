@@ -53,7 +53,7 @@ namespace ebay.FishbowlIntegration.Controller
 
                 DateTime.TryParse(LastOrderDownload, out dateOut);
                 getOrders.CreateTimeFrom = dateOut;
-                getOrders.CreateTimeTo = new DateTime(2016, 11, 12);
+                getOrders.CreateTimeTo = DateTime.Now;
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
                 
@@ -115,6 +115,8 @@ namespace ebay.FishbowlIntegration.Controller
         {
             //this functions returns (suppose to return) inventory data related to active listings --- might need some put some thought there, exactly what compononents needs to be returned and what is accesible/what is not
 
+            //there might be paging issue as well, which we may encounter down the line
+
             ItemTypeCollection ret = new ItemTypeCollection();
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
@@ -139,12 +141,11 @@ namespace ebay.FishbowlIntegration.Controller
                         foreach (VariationType vr in oItem.Variations.Variation)
                         {
                             ItemType i = new ItemType();
+                            i = oItem;
                             i.ItemID = oItem.ItemID;
                             i.SKU = vr.SKU;
                             i.Quantity = vr.Quantity;
                             i.StartPrice = vr.StartPrice;
-                            //i.ShippingDetails.CalculatedShippingRate.WeightMajor = oItem.ShippingDetails.CalculatedShippingRate.WeightMajor; //need to figureout where exactly is the weight stored?
-                            //i.ShippingDetails.CalculatedShippingRate.WeightMinor = oItem.ShippingDetails.CalculatedShippingRate.WeightMinor;
                             ret.Add(i);
                         }
                     }

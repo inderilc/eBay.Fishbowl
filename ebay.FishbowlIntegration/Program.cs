@@ -78,7 +78,7 @@ namespace ebay.FishbowlIntegration
         public void DownloadOrders()
         {
             Log("Downloading Orders");
-            OrderTypeCollection orders = ebc.allCompletedOrders(cfg.Store.SyncOrder.LastShipments.ToString());
+            OrderTypeCollection orders = ebc.allCompletedOrders(cfg.Store.SyncOrder.LastDownloads.ToString());
             Log("Orders Downloaded: " + orders.Count);
             if (orders.Count > 0)
             {
@@ -104,7 +104,7 @@ namespace ebay.FishbowlIntegration
                 var ret = CreateSalesOrders(ofOrders);
 
                 Log("Result: " + String.Join(Environment.NewLine, ret));
-                cfg.Store.SyncOrder.LastShipments = DateTime.Now;
+                cfg.Store.SyncOrder.LastDownloads = DateTime.Now;
                 Log("Downloading Orders Finished");
 
 
@@ -269,7 +269,7 @@ namespace ebay.FishbowlIntegration
                 if (fbProducts.ContainsKey(kvp.SKU))
                 {
                     double dbl = fbProducts[kvp.SKU];
-                    if (!dbl.Equals(kvp.ShippingDetails.CalculatedShippingRate.WeightMajor.Value))
+                    if (!dbl.Equals(kvp.ShippingDetails.CalculatedShippingRate.WeightMajor.Value)) //change of logic needed here
                     {
                      toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, ShippingDetails = new ShippingDetailsType() { CalculatedShippingRate = new CalculatedShippingRateType() { WeightMajor= new MeasureType() { Value = Convert.ToDecimal(dbl) } } } });
                     }
@@ -281,15 +281,15 @@ namespace ebay.FishbowlIntegration
                 foreach (ItemType i in toUpdate)
                 {
                     String sql = "";
-                    var updated = ebc.UpdateProductWeight(i.ItemID, i.SKU, i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value);
+                    var updated = ebc.UpdateProductWeight(i.ItemID, i.SKU, i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value); 
                     Log("SQL: " + sql);
                     if (updated)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor}] OK");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value}] OK");
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor}] FAILED");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value}] FAILED");
                     }
                 }
             }

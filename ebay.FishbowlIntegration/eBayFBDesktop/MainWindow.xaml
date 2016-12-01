@@ -24,7 +24,7 @@
                         <CheckBox Margin="5" IsChecked="{Binding IsShipment}">Update Shipments</CheckBox>
                         <Expander Header="Product Updates">
                             <StackPanel Margin="5">
-                                <CheckBox Margin="5" IsChecked="{Binding IsProductWeights}">Update Weights</CheckBox>
+                                <CheckBox Margin="5" IsChecked="{Binding IsProductWeights}" IsEnabled="{Binding IsProductWeights}">Update Weights</CheckBox>
                                 <CheckBox Margin="5" IsChecked="{Binding IsProductPrice}">Update Prices</CheckBox>
                             </StackPanel>
                         </Expander>

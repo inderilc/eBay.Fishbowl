@@ -94,6 +94,7 @@ namespace eBay.FishbowlIntegration.Configuration
 
         public Dictionary<String, String> PaymentMethodsToAccounts { get; set; }
 
+        public DateTime LastDownloads { get; set; }
         public DateTime LastShipments { get; set; }
         
         public SyncOrderSettings()
