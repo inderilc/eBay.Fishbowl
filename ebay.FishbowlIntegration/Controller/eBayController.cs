@@ -124,11 +124,11 @@ namespace ebay.FishbowlIntegration.Controller
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
             oGetMyeBaySellingCall.ActiveList = new ItemListCustomizationType();
-            oGetMyeBaySellingCall.ActiveList.Pagination = new PaginationType();
-            oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPage = 50;
-            oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPageSpecified = true;
-            oGetMyeBaySellingCall.ActiveList.Pagination.PageNumber = 1;
-            oGetMyeBaySellingCall.ActiveList.Pagination.PageNumberSpecified = true;
+            //oGetMyeBaySellingCall.ActiveList.Pagination = new PaginationType();
+            //oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPage = 50;
+            //oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPageSpecified = true;
+            //oGetMyeBaySellingCall.ActiveList.Pagination.PageNumber = 1;
+            //oGetMyeBaySellingCall.ActiveList.Pagination.PageNumberSpecified = true;
             oGetMyeBaySellingCall.ActiveList.Sort = ItemSortTypeCodeType.StartTime;
             oGetMyeBaySellingCall.ActiveList.SortSpecified = true;
 
