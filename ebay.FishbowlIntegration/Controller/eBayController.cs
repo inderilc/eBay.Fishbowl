@@ -44,20 +44,22 @@ namespace ebay.FishbowlIntegration.Controller
         public OrderTypeCollection allCompletedOrders(String LastOrderDownload)
         {
             OrderTypeCollection orders=new OrderTypeCollection();
+            OrderTypeCollection retOrders = new OrderTypeCollection();
+            DateTime dateOut;
+            DateTime.TryParse(LastOrderDownload, out dateOut);
             try
             {
-                DateTime dateOut;
+             
                 GetOrdersCall getOrders = new GetOrdersCall(context);
                 getOrders.DetailLevelList = new DetailLevelCodeTypeCollection();
                 getOrders.DetailLevelList.Add(DetailLevelCodeType.ReturnAll);
 
-                DateTime.TryParse(LastOrderDownload, out dateOut);
-                getOrders.CreateTimeFrom = dateOut;
+                
+                getOrders.CreateTimeFrom = dateOut.AddDays(-7.0);
                 getOrders.CreateTimeTo = DateTime.Now;
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
                 
-
                 getOrders.Execute();
                 
                 if (getOrders.ApiResponse.Ack != AckCodeType.Failure)
@@ -74,7 +76,15 @@ namespace ebay.FishbowlIntegration.Controller
             {
                
             }
-            return orders;
+
+            foreach (OrderType o in orders)
+            {
+                if (o.PaidTime >= dateOut)
+                {
+                    retOrders.Add(o);
+                }
+            }
+            return retOrders;
         }
         
         public bool UpdateOrderStatusComplete(int orderid)
@@ -91,7 +101,7 @@ namespace ebay.FishbowlIntegration.Controller
             CompleteSaleCall api = new CompleteSaleCall();
             api.OrderID = orderid.ToString();
             api.Shipped = true;
-
+            
             api.Shipment = new ShipmentType();
             api.Shipment.ShipmentTrackingDetails = new ShipmentTrackingDetailsTypeCollection();
 
@@ -103,8 +113,8 @@ namespace ebay.FishbowlIntegration.Controller
 
             //Specify time in GMT. This is an optional field
             //If you don't specify a value for the ShippedTime, it will be defaulted to the time at which the call was made
-            api.Shipment.ShippedTime = new DateTime(2013, 7, 23, 10, 0, 0).ToUniversalTime();
-
+            api.Shipment.ShippedTime = DateTime.Now;
+            
             //call the Execute method
             api.Execute();
             return (api.ApiResponse.Ack != AckCodeType.Failure);
