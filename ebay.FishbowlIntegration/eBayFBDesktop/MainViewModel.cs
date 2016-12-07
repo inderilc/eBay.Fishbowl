@@ -80,7 +80,7 @@ namespace eBayFBDesktop
         {
             using (eBayIntegration oci = new eBayIntegration(this.Cfg))
             {
-                MissingItemsData =  oci.ItemInFBXC();
+                MissingItemsData =  oci.ItemInFBEB();
                 //OnPropertyChanged("MissingItems");
                 OnPropertyChanged("MissingItemsData");
             }

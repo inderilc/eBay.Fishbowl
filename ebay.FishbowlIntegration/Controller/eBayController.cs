@@ -55,7 +55,10 @@ namespace ebay.FishbowlIntegration.Controller
                 getOrders.DetailLevelList.Add(DetailLevelCodeType.ReturnAll);
 
                 
-                getOrders.CreateTimeFrom = dateOut.AddDays(-7.0);
+                getOrders.CreateTimeFrom = dateOut.AddDays(-15.0);  //According to Zane, typical orders are paid within 3-4 days, but we would give 15 days window (thats when eBay cancells NonPaid orders automatically). We return only orders having PaidTime since our last timestamp.
+
+                
+
                 getOrders.CreateTimeTo = DateTime.Now;
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
@@ -126,10 +129,7 @@ namespace ebay.FishbowlIntegration.Controller
             //this functions returns (suppose to return) inventory data related to active listings --- might need some put some thought there, exactly what compononents needs to be returned and what is accesible/what is not
 
             //there might be paging issue as well, which we may encounter down the line
-
-            
-
-
+           
             ItemTypeCollection ret = new ItemTypeCollection();
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
@@ -154,11 +154,11 @@ namespace ebay.FishbowlIntegration.Controller
                         foreach (VariationType vr in oItem.Variations.Variation)
                         {
                             ItemType i = new ItemType();
-                            i = oItem;
+                            //i = oItem;
                             i.ItemID = oItem.ItemID;
                             i.SKU = vr.SKU;
                             i.Quantity = vr.Quantity;
-                            i.StartPrice = vr.StartPrice;
+                            i.BuyItNowPrice = oItem.BuyItNowPrice;
                             ret.Add(i);
                         }
                     }
@@ -234,9 +234,8 @@ namespace ebay.FishbowlIntegration.Controller
             item.ItemID = eBayID;
             item.SKU = sku;
             item.Currency = CurrencyCodeType.AUD;
-            item.StartPrice = new AmountType();
-            item.StartPrice.Value = Convert.ToDouble(price);
-            item.StartPrice.currencyID = CurrencyCodeType.AUD;
+            item.BuyItNowPrice = new AmountType() { Value= Convert.ToDouble(price),currencyID=CurrencyCodeType.AUD };
+
             reviseFP.Item = item;
             reviseFP.Execute();
            

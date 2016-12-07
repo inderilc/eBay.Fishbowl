@@ -28,17 +28,6 @@ namespace ebay.FishbowlIntegration
         private FishbowlController fb { get; set; }
         private eBayController ebc { get; set; }
 
-
-        static void Main(string[] args)
-        {
-
-            var cfg = Config.Load();
-            eBayController ebc = new eBayController(cfg);
-            //DownloadOrders();
-            string a = "0";
-
-        }
-
         public eBayIntegration(Config cfg)
         {
             this.cfg = cfg;
@@ -51,8 +40,6 @@ namespace ebay.FishbowlIntegration
                 fb = new FishbowlController(cfg);
             }
         }
-
-
         public void Run()
         {
 
@@ -105,8 +92,8 @@ namespace ebay.FishbowlIntegration
 
                 Log("Result: " + String.Join(Environment.NewLine, ret));
                 cfg.Store.SyncOrder.LastDownloads = DateTime.Now;
+                Config.Save(cfg);
                 Log("Downloading Orders Finished");
-
 
             }
 
@@ -220,7 +207,7 @@ namespace ebay.FishbowlIntegration
             }
         }
 
-        public List<SimpleList> ItemInFBXC()
+        public List<SimpleList> ItemInFBEB()
         {
             InitConnections();
             ItemTypeCollection eBayProducts = ebc.GetInventory();
@@ -315,9 +302,9 @@ namespace ebay.FishbowlIntegration
                 if (fbProducts.ContainsKey(kvp.SKU))
                 {
                     var dbl = fbProducts[kvp.SKU];
-                    if (dbl != kvp.StartPrice.Value)
+                    if (dbl != kvp.BuyItNowPrice.Value)
                     {
-                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, StartPrice = new AmountType() { Value=dbl} });
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, BuyItNowPrice = new AmountType() { Value=dbl} });
                     }
                 }
             }
@@ -327,15 +314,15 @@ namespace ebay.FishbowlIntegration
                 foreach (ItemType i in toUpdate)
                 {
                     String sql = "";
-                    var updated = ebc.UpdateProductPrice(i.ItemID,i.SKU,i.StartPrice.Value);
+                    var updated = ebc.UpdateProductPrice(i.ItemID,i.SKU,i.BuyItNowPrice.Value);
                     Log("SQL: " + sql);
                     if (updated)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.StartPrice.Value}] OK");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] OK");
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.StartPrice.Value}] FAILED");
+                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] FAILED");
                     }
                 }
             }
