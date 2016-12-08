@@ -269,7 +269,6 @@ namespace ebay.FishbowlIntegration
                 {
                     String sql = "";
                     var updated = ebc.UpdateProductWeight(i.ItemID, i.SKU, i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value); 
-                    Log("SQL: " + sql);
                     if (updated)
                     {
                         Log($"Sku/Variant/Productcode: [{i.SKU}] Weight: [{i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value}] OK");
@@ -311,11 +310,43 @@ namespace ebay.FishbowlIntegration
             if (toUpdate.Count > 0)
             {
                 Log("Updating Product Price: " + toUpdate.Count);
-                foreach (ItemType i in toUpdate)
+                int groupOf = 4;
+                List<ItemType> items = new List<ItemType>();
+                foreach (ItemType it in toUpdate)
                 {
+                    items.Add(it);
+                }
+                List<List<ItemType>> groups = new List<List<ItemType>>();
+                for (int i = 0; i < items.Count; i += groupOf)
+                {
+                    groups.Add(items.GetRange(i, Math.Min(groupOf, items.Count - i)));
+                }
+
+                foreach (List<ItemType> group in groups)
+                {
+                    var updatedGroup = ebc.GroupUpdateProductPrice(group);
+                    if (updatedGroup)
+                    {
+                        foreach (var i in group)
+                        {
+                            Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] OK");
+                        }
+
+                    }
+                    else
+                    {
+                        foreach (var i in group)
+                        {
+                            Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] FAILED");
+                        }
+
+                    }
+                }
+                /*
+                    foreach (ItemType i in toUpdate)
+                    {
                     String sql = "";
                     var updated = ebc.UpdateProductPrice(i.ItemID,i.SKU,i.BuyItNowPrice.Value);
-                    Log("SQL: " + sql);
                     if (updated)
                     {
                         Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] OK");
@@ -324,7 +355,8 @@ namespace ebay.FishbowlIntegration
                     {
                         Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] FAILED");
                     }
-                }
+                    }
+                */
             }
             else
             {
@@ -339,9 +371,7 @@ namespace ebay.FishbowlIntegration
             Log("Updating Inventory");
 
             ItemTypeCollection eBayProducts = ebc.GetInventory();
-
             var fbProducts = fb.GetInventory();
-
             var toUpdate = new ItemTypeCollection();
             foreach (ItemType kvp in eBayProducts)
             {
@@ -350,24 +380,60 @@ namespace ebay.FishbowlIntegration
                     var dbl = fbProducts[kvp.SKU];
                     if (dbl != kvp.Quantity)
                     {
-                        toUpdate.Add(new ItemType(){ ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = Convert.ToInt32(dbl)});
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = Convert.ToInt32(dbl) });
                     }
                 }
             }
+
             if (toUpdate.Count > 0)
             {
-                Log("Updating Inventory: " + toUpdate.Count);
-                foreach (ItemType i in toUpdate)
+                int groupOf = 4;
+                List<ItemType> items = new List<ItemType>();
+                foreach (ItemType it in toUpdate)
                 {
-                    var updated = ebc.UpdateProductInventory(i.ItemID,i.SKU,i.Quantity);
-                    if (updated)
+                    items.Add(it);
+                }
+                List<List<ItemType>> groups = new List<List<ItemType>>();
+                for (int i = 0; i < items.Count; i += groupOf)
+                {
+                    groups.Add(items.GetRange(i, Math.Min(groupOf, items.Count - i)));
+                }
+                Log("Updating Inventory: " + toUpdate.Count);
+                foreach (List<ItemType> group in groups)
+                {
+                    var updatedGroup = ebc.GroupUpdateProductInventory(group);
+                    if (updatedGroup)
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
+                        foreach (var i in group)
+                        {
+                            Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
+                        }
+
                     }
                     else
                     {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
+                        foreach (var i in group)
+                        {
+                            Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
+                        }
+
                     }
+
+
+                    /*
+                    foreach (ItemType i in toUpdate)
+                    {
+                        var updated = ebc.UpdateProductInventory(i.ItemID,i.SKU,i.Quantity);
+                        if (updated)
+                        {
+                          Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
+                        }
+                        else
+                        {
+                          Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
+                        }
+                   }
+                                    */
                 }
             }
             else

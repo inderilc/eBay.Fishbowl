@@ -157,7 +157,7 @@ namespace eBay.FishbowlIntegration.Map
             {
                 Name = "Ebay Record No",
                 Type = "CFT_LONG_TEXT",
-                Info = ord.eBayOrder.OrderID.ToString()
+                Info = ord.eBayOrder.TransactionArray.ItemAt(0).TransactionID.ToString()
             });
 
             ret.Add(new CustomField()
