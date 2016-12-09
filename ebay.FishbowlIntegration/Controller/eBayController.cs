@@ -101,30 +101,32 @@ namespace ebay.FishbowlIntegration.Controller
 
         public bool UpdateShipmentStatus(String orderid, String TrackingNum, String CarrierName)
         {
-            CompleteSaleCall api = new CompleteSaleCall();
-            api.ApiContext = context;
-            //api.OrderID = orderid.ToString();
-            api.TransactionID= orderid.ToString();
-            api.Paid = true;
-            api.Shipped = true;
-            
-            api.Shipment = new ShipmentType();
-            api.Shipment.ShipmentTrackingDetails = new ShipmentTrackingDetailsTypeCollection();
 
-            ShipmentTrackingDetailsType shpmnt = new ShipmentTrackingDetailsType();
-            shpmnt.ShipmentTrackingNumber = TrackingNum;
-            shpmnt.ShippingCarrierUsed = CarrierName;
+            String []ids = orderid.Split('-');
+            if (ids != null && ids.Length == 2)
+            {
+                CompleteSaleCall api = new CompleteSaleCall();
+                api.ApiContext = context;
+                api.ItemID = ids[0];
+                api.TransactionID = ids[1];
+                api.Paid = true;
+                api.Shipped = true;
 
-            api.Shipment.ShipmentTrackingDetails.Add(shpmnt);
+                api.Shipment = new ShipmentType();
+                api.Shipment.ShipmentTrackingDetails = new ShipmentTrackingDetailsTypeCollection();
 
-            //Specify time in GMT. This is an optional field
-            //If you don't specify a value for the ShippedTime, it will be defaulted to the time at which the call was made
-            api.Shipment.ShippedTime = DateTime.Now;
-            
-            //call the Execute method
-            api.Execute();
-            return (api.ApiResponse.Ack != AckCodeType.Failure);
-            
+                ShipmentTrackingDetailsType shpmnt = new ShipmentTrackingDetailsType();
+                shpmnt.ShipmentTrackingNumber = TrackingNum;
+                shpmnt.ShippingCarrierUsed = CarrierName;
+
+                api.Shipment.ShipmentTrackingDetails.Add(shpmnt);
+                api.Shipment.ShippedTime = DateTime.Now;
+
+                //call the Execute method
+                api.Execute();
+                return (api.ApiResponse.Ack != AckCodeType.Failure);
+            }
+            return false;
         }
 
         public ItemTypeCollection GetInventory()

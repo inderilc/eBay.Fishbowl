@@ -152,12 +152,12 @@ namespace eBay.FishbowlIntegration.Map
         {
             List<CustomField> ret = new List<CustomField>();
 
-            //Notes to Buyer needs to be mapped to custom field "Delivery Instructions", ord.OrderID needs to be mapped to “Ebay Record No”, 
+            //Info = ord.eBayOrder.TransactionArray.ItemAt(0).TransactionID.ToString()
             ret.Add(new CustomField()
             {
                 Name = "Ebay Record No",
                 Type = "CFT_LONG_TEXT",
-                Info = ord.eBayOrder.TransactionArray.ItemAt(0).TransactionID.ToString()
+                Info = ord.eBayOrder.OrderID.ToString()
             });
 
             ret.Add(new CustomField()
