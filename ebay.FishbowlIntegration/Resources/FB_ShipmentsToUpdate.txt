@@ -9,4 +9,4 @@ join so on so.id=cvc.RECORDID
 join ship s on s.SOID = so.ID
 join shipcarton on shipcarton.shipid = s.ID
 join CARRIER c on c.ID = SHIPCARTON.CARRIERID
-where (cf.tableid = 1012013120 and cf.name = 'Ebay Record No' and cvc.info !='' and shipcarton.TRACKINGNUM !='')
+where (cf.tableid = 1012013120 and cf.name = 'Ebay Record No' and cvc.info !='' and shipcarton.TRACKINGNUM !='' and s.DATESHIPPED > @dte)

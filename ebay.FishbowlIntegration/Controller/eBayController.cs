@@ -37,7 +37,7 @@ namespace ebay.FishbowlIntegration.Controller
             context.Site = SiteCodeType.Australia;
             context.ApiLogManager = new ApiLogManager();
             context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
-            context.ApiLogManager.EnableLogging = true;
+            context.ApiLogManager.EnableLogging = false;
 
         }
         
@@ -129,10 +129,7 @@ namespace ebay.FishbowlIntegration.Controller
 
         public ItemTypeCollection GetInventory()
         {
-            //this functions returns (suppose to return) inventory data related to active listings --- might need some put some thought there, exactly what compononents needs to be returned and what is accesible/what is not
-
-            //there might be paging issue as well, which we may encounter down the line
-           
+  
             ItemTypeCollection ret = new ItemTypeCollection();
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
@@ -148,7 +145,6 @@ namespace ebay.FishbowlIntegration.Controller
             try
             {
                 oGetMyeBaySellingCall.Execute();
-
                 foreach (ItemType oItem in oGetMyeBaySellingCall.ActiveListReturn.ItemArray)
                 {
 
@@ -157,17 +153,21 @@ namespace ebay.FishbowlIntegration.Controller
                         foreach (VariationType vr in oItem.Variations.Variation)
                         {
                             ItemType i = new ItemType();
-                            //i = oItem;
                             i.ItemID = oItem.ItemID;
                             i.SKU = vr.SKU;
                             i.Quantity = vr.Quantity;
-                            i.BuyItNowPrice = oItem.BuyItNowPrice;
+                            i.BuyItNowPrice = vr.StartPrice;
                             ret.Add(i);
                         }
                     }
                     else
                     {
-                        ret.Add(oItem);
+                        ItemType i = new ItemType();
+                        i.ItemID = oItem.ItemID;
+                        i.SKU = oItem.SKU;
+                        i.Quantity = oItem.QuantityAvailable;
+                        i.BuyItNowPrice = oItem.BuyItNowPrice;
+                        ret.Add(i);
                     }
                 }
             }
@@ -186,20 +186,6 @@ namespace ebay.FishbowlIntegration.Controller
             }
 
             return ret;
-        }
-
-        public bool UpdateProductInventory(string eBayID, string sku, int qty)
-        {
-            ReviseInventoryStatusCall ris = new ReviseInventoryStatusCall(context);
-            ris.InventoryStatuList = new InventoryStatusTypeCollection();
-            InventoryStatusType InvStatus = new InventoryStatusType();
-            InvStatus.ItemID = eBayID;
-            InvStatus.SKU = sku;
-            InvStatus.Quantity = qty;
-            ris.InventoryStatuList.Add(InvStatus);
-            ris.Execute();
-
-            return (ris.ApiResponse.Ack != AckCodeType.Failure);
         }
 
         public bool GroupUpdateProductInventory(List<ItemType> group)
@@ -246,21 +232,6 @@ namespace ebay.FishbowlIntegration.Controller
             return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
         }
 
-        public bool UpdateProductPrice(string eBayID, string sku, double price)
-        {
-
-            ReviseInventoryStatusCall ris = new ReviseInventoryStatusCall(context);
-            ris.InventoryStatuList = new InventoryStatusTypeCollection();
-            InventoryStatusType InvStatus = new InventoryStatusType();
-            InvStatus.ItemID = eBayID;
-            InvStatus.SKU = sku;
-            InvStatus.StartPrice = new AmountType() { Value = price };
-            ris.InventoryStatuList.Add(InvStatus);
-            ris.Execute();
-  
-            return (ris.ApiResponse.Ack != AckCodeType.Failure);
-        }
-
         public bool GroupUpdateProductPrice(List<ItemType> group)
         {
             ReviseInventoryStatusCall ris = new ReviseInventoryStatusCall(context);
@@ -277,26 +248,7 @@ namespace ebay.FishbowlIntegration.Controller
             ris.Execute();
             return (ris.ApiResponse.Ack != AckCodeType.Failure);
         }
-
-
-
-        public bool UpdateProductPriceQty(string eBayID, double price, int qty)
-        {
-            ReviseFixedPriceItemCall reviseFP = new ReviseFixedPriceItemCall(context);
-            ItemType item = new ItemType();
-            item.ItemID = eBayID;
-            item.Currency = CurrencyCodeType.AUD;
-            item.StartPrice = new AmountType();
-            item.StartPrice.Value = Convert.ToDouble(price);
-            item.StartPrice.currencyID = CurrencyCodeType.AUD;
-            item.Quantity = qty;
-            reviseFP.Item = item;
-            reviseFP.Execute();
-
-            return (reviseFP.ApiResponse.Ack != AckCodeType.Failure);
-
-        }
-        
+            
         private void fetchOrders()
         {
             //this is what we got from Ravi...Leaving it here for reference only...we will get rid of it eventually.
@@ -449,9 +401,6 @@ namespace ebay.FishbowlIntegration.Controller
 
             }
         }
-
-        
-
         public void Log(String msg)
         {
             if (OnLog != null)

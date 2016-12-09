@@ -94,7 +94,6 @@ namespace ebay.FishbowlIntegration
                 cfg.Store.SyncOrder.LastDownloads = DateTime.Now;
                 Config.Save(cfg);
                 Log("Downloading Orders Finished");
-
             }
 
         }
@@ -124,7 +123,7 @@ namespace ebay.FishbowlIntegration
                             DateTime dtPayment;
                             bool dtParsed = DateTime.TryParse(o.eBayOrder.CreatedTime.Date.ToString(), out dtPayment);
 
-                            var payment = fb.MakePayment(soNum, o.eBayOrder.CheckoutStatus.PaymentMethod.ToString(), ordertotal, cfg.Store.SyncOrder.PaymentMethodsToAccounts, (dtParsed ? dtPayment : DateTime.Now)); // Use the Generated Order Total, and Payment Date
+                            var payment = fb.MakePayment(soNum, o.eBayOrder.CheckoutStatus.PaymentMethod.ToString(), ordertotal, cfg.Store.SyncOrder.PaymentMethodsToAccounts, (dtParsed ? dtPayment : DateTime.Now), o.FbOrder.CustomerPO.ToString()); // Use the Generated Order Total, and Payment Date
                             ret.Add(payment);
                         }
                         else
@@ -141,10 +140,6 @@ namespace ebay.FishbowlIntegration
                 {
                     ret.Add("SO Exists.");
                 }
-
-
-                //cfg.Store.SyncOrder.OrderQueue[QueueID] = o.eBayOrder.OrderID;
-
                 Config.Save(cfg);
             }
 
@@ -172,9 +167,6 @@ namespace ebay.FishbowlIntegration
         {
             // Do nothing.
         }
-
-
-
         private void ValidateOrder(List<eBayFBOrder> ofOrders, String OrderStatus)
         {
             foreach (var o in ofOrders)
@@ -303,7 +295,7 @@ namespace ebay.FishbowlIntegration
                     var dbl = fbProducts[kvp.SKU];
                     if (dbl != kvp.BuyItNowPrice.Value)
                     {
-                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, BuyItNowPrice = new AmountType() { Value=dbl} });
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, BuyItNowPrice = new AmountType() { Value=dbl, currencyID=CurrencyCodeType.AUD} });
                     }
                 }
             }
@@ -331,7 +323,6 @@ namespace ebay.FishbowlIntegration
                         {
                             Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] OK");
                         }
-
                     }
                     else
                     {
@@ -342,21 +333,6 @@ namespace ebay.FishbowlIntegration
 
                     }
                 }
-                /*
-                    foreach (ItemType i in toUpdate)
-                    {
-                    String sql = "";
-                    var updated = ebc.UpdateProductPrice(i.ItemID,i.SKU,i.BuyItNowPrice.Value);
-                    if (updated)
-                    {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] OK");
-                    }
-                    else
-                    {
-                        Log($"Sku/Variant/Productcode: [{i.SKU}] Price: [{i.BuyItNowPrice.Value}] FAILED");
-                    }
-                    }
-                */
             }
             else
             {
@@ -380,11 +356,16 @@ namespace ebay.FishbowlIntegration
                     var dbl = fbProducts[kvp.SKU];
                     if (dbl != kvp.Quantity)
                     {
-                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = Convert.ToInt32(dbl) });
+                        int quanValue= Convert.ToInt32(dbl);
+                        if (dbl <= 3)
+                        {
+                            quanValue = 0;
+                        }
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = quanValue });
                     }
                 }
             }
-
+      
             if (toUpdate.Count > 0)
             {
                 int groupOf = 4;
@@ -408,7 +389,6 @@ namespace ebay.FishbowlIntegration
                         {
                             Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
                         }
-
                     }
                     else
                     {
@@ -416,24 +396,7 @@ namespace ebay.FishbowlIntegration
                         {
                             Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
                         }
-
                     }
-
-
-                    /*
-                    foreach (ItemType i in toUpdate)
-                    {
-                        var updated = ebc.UpdateProductInventory(i.ItemID,i.SKU,i.Quantity);
-                        if (updated)
-                        {
-                          Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] OK");
-                        }
-                        else
-                        {
-                          Log($"Sku/Variant/Productcode: [{i.SKU}] Qty: [{i.Quantity}] FAILED");
-                        }
-                   }
-                                    */
                 }
             }
             else
@@ -464,7 +427,6 @@ namespace ebay.FishbowlIntegration
                     {
                         Log($"UNABLE TO UPDATE Order [{s.SONUM}] / [{s.CPO}] / [{s.ORDERNUM}] with Tracking : [{s.TRACKINGNUM}]");
                     }
-
                 }
                 else
                 {

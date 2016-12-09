@@ -132,7 +132,7 @@ namespace eBay.FishbowlIntegration.Controller
             catch (Exception ex)
             {
                 SONum = "";
-                msg = ex.Message;
+                msg = ex.Message + " [user id: "+fbOrder.CustomerPO+"]";
                 OrderTotal = 0;
                 return false;
             }
@@ -149,7 +149,7 @@ namespace eBay.FishbowlIntegration.Controller
         }
 
 
-        public String MakePayment(string sonum, string Method, double Total, Dictionary<string, string> methods, DateTime DatePayment)
+        public String MakePayment(string sonum, string Method, double Total, Dictionary<string, string> methods, DateTime DatePayment, string userName)
         {
             MakePaymentRqType rq = new MakePaymentRqType();
 
@@ -171,11 +171,11 @@ namespace eBay.FishbowlIntegration.Controller
 
             if (rs.statusCode == "1000")
             {
-                return $"Payment Applied. ";
+                return $"Payment Applied. [user id: {userName}]";
             }
             else
             {
-                return $"Payment NOT Applied. {rs.statusMessage}";
+                return $"Payment NOT Applied. [user id:{userName}]. {rs.statusMessage}";
             }
         }
 
