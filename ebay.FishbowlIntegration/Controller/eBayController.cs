@@ -133,6 +133,8 @@ namespace ebay.FishbowlIntegration.Controller
         {
   
             ItemTypeCollection ret = new ItemTypeCollection();
+
+
             GetMyeBaySellingCall oGetMyeBaySellingCall = new GetMyeBaySellingCall(context);
 
             oGetMyeBaySellingCall.ActiveList = new ItemListCustomizationType();
@@ -141,8 +143,8 @@ namespace ebay.FishbowlIntegration.Controller
             //oGetMyeBaySellingCall.ActiveList.Pagination.EntriesPerPageSpecified = true;
             //oGetMyeBaySellingCall.ActiveList.Pagination.PageNumber = 1;
             //oGetMyeBaySellingCall.ActiveList.Pagination.PageNumberSpecified = true;
-            oGetMyeBaySellingCall.ActiveList.Sort = ItemSortTypeCodeType.StartTime;
-            oGetMyeBaySellingCall.ActiveList.SortSpecified = true;
+            //oGetMyeBaySellingCall.ActiveList.Sort = ItemSortTypeCodeType.StartTime;
+            //oGetMyeBaySellingCall.ActiveList.SortSpecified = true;
 
             try
             {
@@ -157,7 +159,7 @@ namespace ebay.FishbowlIntegration.Controller
                             ItemType i = new ItemType();
                             i.ItemID = oItem.ItemID;
                             i.SKU = vr.SKU;
-                            i.Quantity = vr.Quantity;
+                            i.Quantity = vr.Quantity-vr.SellingStatus.QuantitySold;
                             i.BuyItNowPrice = vr.StartPrice;
                             ret.Add(i);
                         }
@@ -197,10 +199,24 @@ namespace ebay.FishbowlIntegration.Controller
             foreach (var item in group)
             {
                 InventoryStatusType InvStatus = new InventoryStatusType();
+
+                /*
+                if (item.ItemID == "281938060209")
+                {
+                    string a = "1";
+                    InvStatus.ItemID = item.ItemID;
+                    InvStatus.SKU = item.SKU;
+                    InvStatus.Quantity = item.Quantity;
+                    ris.InventoryStatuList.Add(InvStatus);
+                }*/
+
+                
                 InvStatus.ItemID = item.ItemID;
                 InvStatus.SKU = item.SKU;
                 InvStatus.Quantity = item.Quantity;
                 ris.InventoryStatuList.Add(InvStatus);
+                
+
             }
 
             ris.Execute();

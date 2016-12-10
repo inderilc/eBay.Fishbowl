@@ -354,14 +354,17 @@ namespace ebay.FishbowlIntegration
                 if (fbProducts.ContainsKey(kvp.SKU))
                 {
                     var dbl = fbProducts[kvp.SKU];
-                    if (dbl != kvp.Quantity)
+                    if (dbl != kvp.Quantity || dbl ==3)
                     {
                         int quanValue= Convert.ToInt32(dbl);
                         if (dbl <= 3)
                         {
                             quanValue = 0;
                         }
-                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = quanValue });
+                        if (kvp.Quantity != 0)
+                        {
+                            toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = quanValue });
+                        }
                     }
                 }
             }
