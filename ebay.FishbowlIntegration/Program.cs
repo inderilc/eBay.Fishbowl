@@ -417,7 +417,6 @@ namespace ebay.FishbowlIntegration
             Log("Orders: " + shipments.Count);
             foreach (var s in shipments)
             {
-
                 String orderid = s.ORDERNUM.ToString();
                 if (!String.IsNullOrEmpty(orderid))
                 {

@@ -38,6 +38,7 @@ namespace eBay.FishbowlIntegration.Map
             salesOrder.CustomerContact = "Ebay Sale";
             
             
+            
 
             salesOrder.Items = MapItems(cfg, ord.eBayOrder.TransactionArray).ToList();
            
@@ -152,7 +153,16 @@ namespace eBay.FishbowlIntegration.Map
         {
             List<CustomField> ret = new List<CustomField>();
 
-            //Info = ord.eBayOrder.TransactionArray.ItemAt(0).TransactionID.ToString()
+            if (ord.eBayOrder.TransactionArray?.Count > 0)
+            {
+                String emailAdd = ord.eBayOrder.TransactionArray.ItemAt(0).Buyer.Email;
+                ret.Add(new CustomField()
+                {
+                    Name = "Order Email",
+                    Type = "CFT_LONG_TEXT",
+                    Info = emailAdd
+                });
+            }     
             ret.Add(new CustomField()
             {
                 Name = "Ebay Record No",

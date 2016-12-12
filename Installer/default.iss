@@ -15,6 +15,7 @@ AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
+OutputDir=C:\Local\Git\eBay.Fishbowl\ebay.FishbowlIntegration\Installer
 OutputBaseFilename=ebay_integration_setup
 Compression=lzma
 SolidCompression=yes
@@ -36,3 +37,6 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[Dirs]
+Name: "{app}\/"; Permissions: everyone-full

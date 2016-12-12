@@ -131,8 +131,6 @@ namespace eBay.FishbowlIntegration.Configuration
         public bool SyncProductWeight { get; set; }
         public bool SyncProductPrice { get; set; }
     }
-
-
     public class EmailConfig
     {
         public String Host { get; set; }
