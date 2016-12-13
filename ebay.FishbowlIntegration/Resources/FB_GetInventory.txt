@@ -4,12 +4,16 @@ select product.num,
 
 COALESCE( 
 
-IIF( SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(ALLOC.QTY) < 0, 0, SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(QTYINVENTORYTOTALS.QTYALLOCATED) ) ,0) as QTY
+IIF( SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(ALLOC.QTY) < 0, 0, SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(ALLOC.QTY) ) 
+
+,0) as QTY
+
 from PART
     join product on product.partid = part.id
     left join QTYINVENTORYTOTALS on QTYINVENTORYTOTALS.PARTID = part.id
     left join (
 SELECT part.id as partid
+    ,so.locationgroupid as lgpid
 	,COALESCE(SUM(CASE 
 				WHEN SOItem.UOMID <> part.uomid
 					AND uomconversion.ID > 0
@@ -37,10 +41,10 @@ WHERE (SO.statusID between 10 and 25
 		10
 		,12
 		))
-GROUP BY part.id  
-    ) as alloc on alloc.partid = part.id
+GROUP BY 1,2  
+    ) as alloc on alloc.partid = part.id and alloc.lgpid = QTYINVENTORYTOTALS.locationgroupid
 where part.typeid = 10 
-group by 1 
+group by 1
 
 union all
 
