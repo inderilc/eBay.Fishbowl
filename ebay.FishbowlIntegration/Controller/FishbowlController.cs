@@ -200,10 +200,15 @@ namespace eBay.FishbowlIntegration.Controller
         public void Dispose()
         {
             if (api != null)
+            {
+                api.Close();
                 api.Dispose();
-
+            }
             if (db != null)
+            {
+                db.Close();
                 db.Dispose();
+            }
         }
     }
 }

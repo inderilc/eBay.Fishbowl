@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
 using ebay.FishbowlIntegration;
 using eBay.FishbowlIntegration;
 using eBay.FishbowlIntegration.Configuration;
@@ -95,6 +96,7 @@ namespace eBayFBDesktop
         {
             PBBarShow = true;
             OnPropertyChanged("PBBarShow");
+
             if (!bw.IsBusy)
             {
                 bw.RunWorkerAsync();

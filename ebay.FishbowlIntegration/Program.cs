@@ -476,6 +476,8 @@ namespace ebay.FishbowlIntegration
         {
             if (fb != null)
                 fb.Dispose();
+            if (ebc != null)
+                ebc.Dispose();
 
         }
 

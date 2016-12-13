@@ -19,7 +19,7 @@ using FishbowlSDK.Extensions;
 
 namespace ebay.FishbowlIntegration.Controller
 {
-    public class eBayController
+    public class eBayController : IDisposable
     {
         private Config cfg;
         private ApiContext context;
@@ -30,15 +30,17 @@ namespace ebay.FishbowlIntegration.Controller
         {
             this.cfg = cfg;
             this.fb = new FishbowlController(this.cfg);
-            context = new ApiContext();
-            this.context.ApiCredential.eBayToken = cfg.Store.ApiToken;
-            this.context.SoapApiServerUrl = cfg.Store.StoreUrl;
-            context.Version = "983";
-            context.Site = SiteCodeType.Australia;
-            context.ApiLogManager = new ApiLogManager();
-            context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
-            context.ApiLogManager.EnableLogging = false;
-
+            if (context == null)
+            {
+                context = new ApiContext();
+                this.context.ApiCredential.eBayToken = cfg.Store.ApiToken;
+                this.context.SoapApiServerUrl = cfg.Store.StoreUrl;
+                context.Version = "983";
+                context.Site = SiteCodeType.Australia;
+                context.ApiLogManager = new ApiLogManager();
+                context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
+                context.ApiLogManager.EnableLogging = false;
+            }
         }
         
         public OrderTypeCollection allCompletedOrders(String LastOrderDownload)
@@ -71,6 +73,7 @@ namespace ebay.FishbowlIntegration.Controller
                     if (getOrders.ApiResponse.OrderArray.Count != 0)
                     {
                         orders = getOrders.ApiResponse.OrderArray;
+                        
                     }
                 }
             }
@@ -79,6 +82,8 @@ namespace ebay.FishbowlIntegration.Controller
             {
                
             }
+
+           
 
             foreach (OrderType o in orders)
             {
@@ -124,6 +129,7 @@ namespace ebay.FishbowlIntegration.Controller
 
                 //call the Execute method
                 api.Execute();
+                
                 return (api.ApiResponse.Ack != AckCodeType.Failure);
             }
             return false;
@@ -249,6 +255,14 @@ namespace ebay.FishbowlIntegration.Controller
             if (OnLog != null)
             {
                 OnLog(msg);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (fb != null)
+            {
+                fb.Dispose();
             }
         }
     }
