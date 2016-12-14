@@ -21,6 +21,7 @@ namespace eBayFBDesktop
             this.Cfg = Config.Load();
             this.bw = new BackgroundWorker();
             bw.DoWork += Bw_DoWork;
+
             bw.RunWorkerCompleted += Bw_RunWorkerCompleted;
         }
 
@@ -35,16 +36,16 @@ namespace eBayFBDesktop
         {
             try
             {
-                using (eBayIntegration oci = new eBayIntegration(this.Cfg))
-                {
-                    oci.OnLog += Oci_OnLog;
-                    oci.Run();
-                }
+
+                eBayIntegration oci = new eBayIntegration(this.Cfg);
+                oci.OnLog += Oci_OnLog;
+                oci.Run(); 
             }
             catch(Exception ex)
             {
                 DisplayException(ex);
             }
+            
         }
 
         private void DisplayException(Exception ex)

@@ -2,47 +2,35 @@ select * from (
 
 select product.num, 
 
-COALESCE( 
+COALESCE(
 
-IIF( SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(ALLOC.QTY) < 0, 0, SUM(QTYINVENTORYTOTALS.QTYONHAND) - SUM(ALLOC.QTY) ) 
+IIF( (SUM(qtyonhand.qty) - SUM(ALLOC.QTY)) < 0, 0, (SUM(qtyonhand.qty) - SUM(ALLOC.QTY)) ) 
 
-,0) as QTY
+,SUM(qtyonhand.qty),0) as QTY
 
 from PART
     join product on product.partid = part.id
-    left join QTYINVENTORYTOTALS on QTYINVENTORYTOTALS.PARTID = part.id
+    left join qtyonhand on qtyonhand.PARTID = part.id
     left join (
 SELECT part.id as partid
     ,so.locationgroupid as lgpid
-	,COALESCE(SUM(CASE 
-				WHEN SOItem.UOMID <> part.uomid
-					AND uomconversion.ID > 0
-					THEN (SOItem.qtyToFulfill - SOItem.qtyFulfilled) * uomconversion.MULTIPLY / uomconversion.FACTOR
-				ELSE SOItem.qtyToFulfill - SOItem.qtyFulfilled
-				END), 0) AS qty
+,COALESCE(SUM(CASE 
+WHEN SOItem.UOMID <> part.uomid
+AND uomconversion.ID > 0
+THEN (SOItem.qtyToFulfill - SOItem.qtyFulfilled) * uomconversion.MULTIPLY / uomconversion.FACTOR
+ELSE SOItem.qtyToFulfill - SOItem.qtyFulfilled
+END), 0) AS qty
 FROM Part
 INNER JOIN Product ON Part.ID = Product.partID
-INNER JOIN SOItem ON Product.ID = SOItem.productID
-INNER JOIN SO ON SO.ID = SOItem.SOID
+LEFT JOIN SOItem ON Product.ID = SOItem.productID
+LEFT JOIN SO ON SO.ID = SOItem.SOID
 LEFT OUTER JOIN uomconversion ON (
-		uomconversion.TOUOMID = part.uomid
-		AND uomconversion.FROMUOMID = soitem.uomid
-		)
-WHERE (SO.statusID between 10 and 25
+uomconversion.TOUOMID = part.uomid
+AND uomconversion.FROMUOMID = soitem.uomid
+)
 
-	AND SOItem.statusID IN (
-		10
-		,14
-		,20
-		,30
-		,40
-		)
-	AND SOItem.typeID IN (
-		10
-		,12
-		))
 GROUP BY 1,2  
-    ) as alloc on alloc.partid = part.id and alloc.lgpid = QTYINVENTORYTOTALS.locationgroupid
+    ) as alloc on alloc.partid = part.id and alloc.lgpid = qtyonhand.locationgroupid
 where part.typeid = 10 
 group by 1
 
@@ -50,7 +38,7 @@ union all
 
 select product.num, MIN ( COALESCE( (select SUM(tag.qty)-SUM(tag.QTYCOMMITTED) from tag where partid = kp.partid),0) ) as QTY
 from product
-	join kititem on kititem.kitproductid = product.id
+join kititem on kititem.kitproductid = product.id
     join product as kp on kp.id = kititem.productid    
 where product.kitflag = 1
 group by 1

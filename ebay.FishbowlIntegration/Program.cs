@@ -40,27 +40,49 @@ namespace ebay.FishbowlIntegration
                 fb = new FishbowlController(cfg);
             }
         }
+        
+        private void InitConnections()
+        {
+            if (fb == null)
+            {
+                Log("Connecting to Fishbowl");
+                fb = new FishbowlController(cfg);
+            }
+
+            if (ebc == null)
+            {
+                Log("Connecting to eBay");
+                ebc = new eBayController(cfg);
+            }
+        }
+
         public void Run()
         {
+            try
+            {
+                Log("Starting Integration");
+                InitConnections();
+                Log("Ready");
+                if (cfg.Actions.SyncOrders)
+                    DownloadOrders();
 
-            Log("Starting Integration");
-            InitConnections();
-            Log("Ready");
-            if (cfg.Actions.SyncOrders)
-                DownloadOrders();
+                if (cfg.Actions.SyncInventory)
+                    UpdateInventory();
 
-            if (cfg.Actions.SyncInventory)
-                UpdateInventory();
+                if (cfg.Actions.SyncShipments)
+                    UpdateShipments();
 
-            if (cfg.Actions.SyncShipments)
-                UpdateShipments();
+                if (cfg.Actions.SyncProductPrice)
+                    UpdateProductPrice();
 
-            if (cfg.Actions.SyncProductPrice)
-                UpdateProductPrice();
-
-            if (cfg.Actions.SyncProductWeight)
-                UpdateProductWeight();
-
+                if (cfg.Actions.SyncProductWeight)
+                    UpdateProductWeight();
+            }
+            catch (Exception ex)
+            {
+                Log("Error Running the Integration. Error Message: " + ex.Message);
+            }
+            Dispose();
         }
         public void DownloadOrders()
         {
@@ -91,10 +113,11 @@ namespace ebay.FishbowlIntegration
                 var ret = CreateSalesOrders(ofOrders);
 
                 Log("Result: " + String.Join(Environment.NewLine, ret));
-                cfg.Store.SyncOrder.LastDownloads = DateTime.Now;
-                Config.Save(cfg);
+                
                 Log("Downloading Orders Finished");
+                
             }
+
 
         }
 
@@ -140,6 +163,7 @@ namespace ebay.FishbowlIntegration
                 {
                     ret.Add("SO Exists.");
                 }
+                cfg.Store.SyncOrder.LastDownloads = DateTime.Now;
                 Config.Save(cfg);
             }
 
@@ -351,21 +375,21 @@ namespace ebay.FishbowlIntegration
             var toUpdate = new ItemTypeCollection();
             foreach (ItemType kvp in eBayProducts)
             {
+
                 if (fbProducts.ContainsKey(kvp.SKU))
                 {
                     var dbl = fbProducts[kvp.SKU];
-                    if (dbl != kvp.Quantity || dbl ==3)
+                    int toUpdateValue = Convert.ToInt32(dbl);
+                    if (dbl <=3)
                     {
-                        int quanValue= Convert.ToInt32(dbl);
-                        if (dbl <= 3)
-                        {
-                            quanValue = 0;
-                        }
-                        if (kvp.Quantity != 0)
-                        {
-                            toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = quanValue });
-                        }
+                        toUpdateValue = 0;
                     }
+
+                    if ((toUpdateValue == 0 && kvp.Quantity != 0) || (toUpdateValue > 3 && (kvp.Quantity != toUpdateValue)))
+                    {
+                        toUpdate.Add(new ItemType() { ItemID = kvp.ItemID, SKU = kvp.SKU, Quantity = toUpdateValue});
+                    }
+
                 }
             }
       
@@ -448,22 +472,7 @@ namespace ebay.FishbowlIntegration
                 OnLog(msg);
             }
         }
-
-        private void InitConnections()
-        {
-            if (fb == null)
-            {
-                Log("Connecting to Fishbowl");
-                fb = new FishbowlController(cfg);
-            }
-
-            if (ebc == null)
-            {
-                Log("Connecting to eBay");
-                ebc = new eBayController(cfg);
-            }
-        }
-
+        
         private void LogException(Exception ex)
         {
             String msg = ex.Message;
@@ -475,11 +484,19 @@ namespace ebay.FishbowlIntegration
         public void Dispose()
         {
             if (fb != null)
+            {
                 fb.Dispose();
-            if (ebc != null)
-                ebc.Dispose();
+                fb = null;
+            }
 
+            if (ebc != null)
+            {
+                ebc.Dispose();
+                ebc = null;
+            }
         }
+        
+        
 
     }
 }

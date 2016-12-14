@@ -47,6 +47,7 @@ namespace eBay.FishbowlIntegration.Controller
         private FishbowlSDK.Fishbowl InitAPI()
         {
             var newfb = new FishbowlSDK.Fishbowl(cfg.FB.ServerAddress, cfg.FB.ServerPort, cfg.FB.FBIAKey, cfg.FB.FBIAName, cfg.FB.FBIADesc, cfg.FB.Persistent, cfg.FB.Username, cfg.FB.Password);
+
             return newfb;
         }
 
@@ -201,13 +202,13 @@ namespace eBay.FishbowlIntegration.Controller
         {
             if (api != null)
             {
-                api.Close();
                 api.Dispose();
+                api = null;
             }
             if (db != null)
             {
-                db.Close();
                 db.Dispose();
+                db = null;
             }
         }
     }

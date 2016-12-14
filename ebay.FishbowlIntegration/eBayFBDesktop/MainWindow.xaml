@@ -21,11 +21,12 @@
                         <Label Grid.Row="1">eBay 4 Integration with Fishbowl</Label>
                         <CheckBox Margin="5" IsChecked="{Binding IsOrders}">Download Orders</CheckBox>
                         <CheckBox Margin="5" IsChecked="{Binding IsInventory}">Update Inventory</CheckBox>
-                        <CheckBox Margin="5" IsChecked="{Binding IsShipment}">Update Shipments</CheckBox>
-                        <Expander Header="Product Updates">
+                        
+                        <Expander Header="More Updates">
                             <StackPanel Margin="5">
                                 <CheckBox Margin="5" IsChecked="{Binding IsProductWeights}" IsEnabled="{Binding IsProductWeights}">Update Weights</CheckBox>
                                 <CheckBox Margin="5" IsChecked="{Binding IsProductPrice}">Update Prices</CheckBox>
+                                <CheckBox Margin="5" IsChecked="{Binding IsShipment}">Update Shipments</CheckBox>
                             </StackPanel>
                         </Expander>
                         <Button  Margin="5" Command="{Binding Update}">Update</Button>

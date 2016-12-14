@@ -64,12 +64,13 @@ namespace eBay.FishbowlIntegration.Map
 
 
             
-            salesOrder.CustomFields = MapCustomFields(cfg, ord); 
-            
+            salesOrder.CustomFields = MapCustomFields(cfg, ord);
+
+            String address = (((o.ShippingAddress?.CompanyName ?? "").Trim() + " " + (o.ShippingAddress?.Street ?? "").Trim() + " " + (o.ShippingAddress?.Street1 ?? "").Trim() + " " + (o.ShippingAddress?.Street2 ?? "").Trim())).Trim().Replace(","," ");
 
             salesOrder.Ship = new ShipType
             {
-                AddressField = (o.ShippingAddress?.CompanyName??"").Trim()+(" "+o.ShippingAddress?.Street??"").Trim()+(" "+ o.ShippingAddress?.Street1??"").Trim() + (" "+ o.ShippingAddress?.Street2??"").Trim(),
+                AddressField = address,
                 City = o.ShippingAddress.CityName,
                 Country = o.ShippingAddress.CountryName,
                 State = o.ShippingAddress.StateOrProvince,
@@ -79,7 +80,7 @@ namespace eBay.FishbowlIntegration.Map
 
             salesOrder.BillTo = new BillType
             {
-                AddressField = (o.ShippingAddress?.CompanyName ?? "").Trim() + (" " + o.ShippingAddress?.Street ?? "").Trim() + (" " + o.ShippingAddress?.Street1 ?? "").Trim() + (" " + o.ShippingAddress?.Street2 ?? "").Trim(),
+                AddressField = address,
                 City = o.ShippingAddress.CityName,
                 Country = o.ShippingAddress.CountryName,
                 State = o.ShippingAddress.StateOrProvince,

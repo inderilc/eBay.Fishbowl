@@ -23,13 +23,17 @@ namespace ebay.FishbowlIntegration.Controller
     {
         private Config cfg;
         private ApiContext context;
-        public event LogMsg OnLog;
-        public delegate void LogMsg(String msg);
         private FishbowlController fb { get; set; }
         public eBayController(Config cfg)
         {
-            this.cfg = cfg;
-            this.fb = new FishbowlController(this.cfg);
+            if (this.cfg == null)
+            {
+                this.cfg = cfg;
+            }
+            if (this.fb == null)
+            {
+                this.fb = new FishbowlController(this.cfg);
+            }
             if (context == null)
             {
                 context = new ApiContext();
@@ -37,9 +41,9 @@ namespace ebay.FishbowlIntegration.Controller
                 this.context.SoapApiServerUrl = cfg.Store.StoreUrl;
                 context.Version = "983";
                 context.Site = SiteCodeType.Australia;
-                context.ApiLogManager = new ApiLogManager();
-                context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
-                context.ApiLogManager.EnableLogging = false;
+                //context.ApiLogManager = new ApiLogManager();
+                //context.ApiLogManager.ApiLoggerList.Add(new FileLogger("log.txt", true, true, true));
+                //context.ApiLogManager.EnableLogging = false;
             }
         }
         
@@ -249,20 +253,12 @@ namespace ebay.FishbowlIntegration.Controller
             ris.Execute();
             return (ris.ApiResponse.Ack != AckCodeType.Failure);
         }
-
-        public void Log(String msg)
-        {
-            if (OnLog != null)
-            {
-                OnLog(msg);
-            }
-        }
-
         public void Dispose()
         {
             if (fb != null)
             {
                 fb.Dispose();
+                fb = null;
             }
         }
     }
