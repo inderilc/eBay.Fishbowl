@@ -36,16 +36,17 @@ namespace eBayFBDesktop
         {
             try
             {
-
-                eBayIntegration oci = new eBayIntegration(this.Cfg);
-                oci.OnLog += Oci_OnLog;
-                oci.Run(); 
+                using (eBayIntegration oci = new eBayIntegration(this.Cfg))
+                {
+                    oci.OnLog += Oci_OnLog;
+                    oci.Run();
+                } 
             }
             catch(Exception ex)
             {
                 DisplayException(ex);
             }
-            
+
         }
 
         private void DisplayException(Exception ex)

@@ -46,8 +46,10 @@ namespace eBay.FishbowlIntegration.Controller
 
         private FishbowlSDK.Fishbowl InitAPI()
         {
-            var newfb = new FishbowlSDK.Fishbowl(cfg.FB.ServerAddress, cfg.FB.ServerPort, cfg.FB.FBIAKey, cfg.FB.FBIAName, cfg.FB.FBIADesc, cfg.FB.Persistent, cfg.FB.Username, cfg.FB.Password);
-
+            var newfb = new FishbowlSDK.Fishbowl(cfg.FB.ServerAddress, cfg.FB.ServerPort, cfg.FB.FBIAKey, cfg.FB.FBIAName, cfg.FB.FBIADesc, cfg.FB.Persistent);
+            newfb.SetTimeout(1000, 1000);
+            newfb.login( cfg.FB.Username, cfg.FB.Password);
+            newfb.SetTimeout(1000 * 60 * 14, 1000 * 60 * 14);
             return newfb;
         }
 
