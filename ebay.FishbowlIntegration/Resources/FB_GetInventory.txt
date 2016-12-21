@@ -4,7 +4,7 @@ select product.num,
 
 COALESCE(
 
-IIF( (SUM(qtyonhand.qty) - SUM(ALLOC.QTY)) < 0, 0, (SUM(qtyonhand.qty) - SUM(ALLOC.QTY)) ) 
+IIF( (SUM(COALESCE(qtyonhand.qty, 0)) - SUM(COALESCE(ALLOC.QTY, 0))) < 0, 0, (SUM(COALESCE(qtyonhand.qty, 0)) - SUM(COALESCE(ALLOC.QTY, 0))) ) 
 
 ,SUM(qtyonhand.qty),0) as QTY
 
@@ -28,7 +28,19 @@ LEFT OUTER JOIN uomconversion ON (
 uomconversion.TOUOMID = part.uomid
 AND uomconversion.FROMUOMID = soitem.uomid
 )
+WHERE (SO.statusID between 10 and 25
 
+AND SOItem.statusID IN (
+10
+,14
+,20
+,30
+,40
+)
+AND SOItem.typeID IN (
+10
+,12
+)) 
 GROUP BY 1,2  
     ) as alloc on alloc.partid = part.id and alloc.lgpid = qtyonhand.locationgroupid
 where part.typeid = 10 

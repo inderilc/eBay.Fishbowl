@@ -82,7 +82,6 @@ namespace ebay.FishbowlIntegration
             {
                 Log("Error Running the Integration. Error Message: " + ex.Message);
             }
-            Dispose();
         }
         public void DownloadOrders()
         {
@@ -283,7 +282,6 @@ namespace ebay.FishbowlIntegration
                 Log("Updating Product Weight: " + toUpdate.Count);
                 foreach (ItemType i in toUpdate)
                 {
-                    String sql = "";
                     var updated = ebc.UpdateProductWeight(i.ItemID, i.SKU, i.ShippingDetails.CalculatedShippingRate.WeightMajor.Value); 
                     if (updated)
                     {

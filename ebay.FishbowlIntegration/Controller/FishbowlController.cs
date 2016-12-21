@@ -135,7 +135,7 @@ namespace eBay.FishbowlIntegration.Controller
             catch (Exception ex)
             {
                 SONum = "";
-                msg = ex.Message + " [user id: "+fbOrder.CustomerPO+"]";
+                msg = "Error Saving Sales Order. "+ex.Message + " [user id: "+fbOrder.CustomerPO+"]";
                 OrderTotal = 0;
                 return false;
             }

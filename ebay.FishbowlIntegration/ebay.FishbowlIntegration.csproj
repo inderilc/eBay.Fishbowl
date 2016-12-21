@@ -60,11 +60,12 @@
       <HintPath>libs\eBay.Service.dll</HintPath>
     </Reference>
     <Reference Include="FirebirdSql.Data.FirebirdClient, Version=5.6.0.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
-      <HintPath>..\packages\FirebirdSql.Data.FirebirdClient.5.6.0\lib\net45\FirebirdSql.Data.FirebirdClient.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Fishbowl\FirebirdSql.Data.FirebirdClient.dll</HintPath>
     </Reference>
-    <Reference Include="FishbowlSDK.20152">
-      <HintPath>libs\FishbowlSDK.20152.dll</HintPath>
+    <Reference Include="FishbowlSDK.20152, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Fishbowl\FishbowlSDK.20152.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\Users\Owner\Documents\GitHub\PinnacleCart.Fishbowl\PinnacleCartIntegration\Build\Newtonsoft.Json.dll</HintPath>
