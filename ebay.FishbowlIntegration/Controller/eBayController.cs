@@ -46,56 +46,74 @@ namespace ebay.FishbowlIntegration.Controller
                 //context.ApiLogManager.EnableLogging = false;
             }
         }
-        
+
         public OrderTypeCollection allCompletedOrders(String LastOrderDownload)
         {
-            OrderTypeCollection orders=new OrderTypeCollection();
+            OrderTypeCollection orders = new OrderTypeCollection();
             OrderTypeCollection retOrders = new OrderTypeCollection();
             DateTime dateOut;
             DateTime.TryParse(LastOrderDownload, out dateOut);
             try
             {
-             
+
                 GetOrdersCall getOrders = new GetOrdersCall(context);
                 getOrders.DetailLevelList = new DetailLevelCodeTypeCollection();
                 getOrders.DetailLevelList.Add(DetailLevelCodeType.ReturnAll);
 
-                
-                getOrders.CreateTimeFrom = dateOut.AddDays(-15.0);  //According to Zane, typical orders are paid within 3-4 days, but we would give 15 days window (thats when eBay cancells NonPaid orders automatically). We return only orders having PaidTime since our last timestamp.
 
-                
+                getOrders.CreateTimeFrom = dateOut.AddDays(-15.0);  //According to Zane, typical orders are paid within 3-4 days, but we would give 15 days window (thats when eBay cancells NonPaid orders automatically). We return only orders having PaidTime since our last timestamp.
 
                 getOrders.CreateTimeTo = DateTime.Now;
                 getOrders.OrderRole = TradingRoleCodeType.Seller;
                 getOrders.OrderStatus = OrderStatusCodeType.Completed;
                 
                 getOrders.Execute();
-                
+
                 if (getOrders.ApiResponse.Ack != AckCodeType.Failure)
                 {
                     //Check if any orders are returned
                     if (getOrders.ApiResponse.OrderArray.Count != 0)
                     {
                         orders = getOrders.ApiResponse.OrderArray;
-                        
+
                     }
                 }
-            }
+          
+                if (getOrders.PaginationResult.TotalNumberOfPages > 1) //if more than 1 pages, then need to download all the pages.
+                {
+                    int pageNumber = 2;
+                    do
+                    {
+                        getOrders.Pagination = new PaginationType() {PageNumber=pageNumber};
+                        getOrders.Execute();
+                        if (getOrders.ApiResponse.Ack != AckCodeType.Failure)
+                        {
+                            //Check if any orders are returned
+                            if (getOrders.ApiResponse.OrderArray.Count != 0)
+                            {
+                                orders.AddRange(getOrders.ApiResponse.OrderArray);
+                            }
+                        }
 
+                        pageNumber++;
+                    } while (pageNumber <= getOrders.PaginationResult.TotalNumberOfPages);
+
+                }
+                foreach (OrderType o in orders)
+                {
+                    if (o.PaidTime.ToLocalTime() > dateOut)
+                    {
+                        retOrders.Add(o);
+                    }
+                }
+
+            }
+            
             catch (Exception ex)
             {
-               
-            }
 
-           
-
-            foreach (OrderType o in orders)
-            {
-                if (o.PaidTime.ToLocalTime() > dateOut)
-                {
-                    retOrders.Add(o);
-                }
             }
+            
             return retOrders;
         }
         
