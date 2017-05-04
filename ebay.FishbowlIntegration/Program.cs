@@ -14,7 +14,7 @@ using eBay.FishbowlIntegration.Models;
 using eBay.FishbowlIntegration.Map;
 using FishbowlSDK;
 using FishbowlSDK.Extensions;
-
+using Dapper;
 using System.IO;
 
 namespace ebay.FishbowlIntegration
@@ -86,7 +86,20 @@ namespace ebay.FishbowlIntegration
         public void DownloadOrders()
         {
             Log("Downloading Orders");
-            OrderTypeCollection orders = ebc.allCompletedOrders(cfg.Store.SyncOrder.LastDownloads.ToString());
+
+            OrderTypeCollection orders = new OrderTypeCollection();
+
+            if (!String.IsNullOrEmpty(cfg.Store.SyncOrder.TestOrderID))
+            {
+                Log("Downloading Test Order# " + cfg.Store.SyncOrder.TestOrderID);
+                orders.Add(ebc.GetTestOrder(cfg.Store.SyncOrder.TestOrderID));
+            }
+            else
+            {
+                orders = ebc.allCompletedOrders(cfg.Store.SyncOrder.LastDownloads.ToString());
+            }
+
+
             Log("Orders Downloaded: " + orders.Count);
             if (orders.Count > 0)
             {
@@ -105,9 +118,9 @@ namespace ebay.FishbowlIntegration
                 ValidateCarriers(ofOrders);
                 Log("Carriers Validated");
 
-                //Log("Kit Items");
-                // ValidateKits(ofOrders);
-                // Log("Finished Kits.");
+                Log("Kit Items");
+                ValidateKits(ofOrders);
+                Log("Finished Kits.");
                 
                 var ret = CreateSalesOrders(ofOrders);
 
@@ -182,8 +195,40 @@ namespace ebay.FishbowlIntegration
             so.Items.Clear();
             foreach (var i in originalItems)
             {
-                so.AddItem(fb.api, i);
+                //so.AddItem(fb.api, i);
+                so.Items.AddRange(AddItems(i));
+
             }
+        }
+
+        private List<SalesOrderItem> AddItems(SalesOrderItem i)
+        {
+            List<SalesOrderItem> ret = new List<SalesOrderItem>();
+
+            List<String> num = fb.db.Query<String>("select pk.num from product p join kititem k on p.id = k.kitproductid join product as pk on pk.id = k.productid where p.num = @proNum",new { proNum=i.ProductNumber}).ToList();
+            if (num.Count>0)
+            {
+                i.ItemType = "80";
+                ret.Add(i);
+                foreach (String s in num)
+                {
+                    SalesOrderItem soi = new SalesOrderItem();
+                    soi.ProductNumber = s;
+                    soi.ItemType = "10";
+                    soi.Status = "10";
+                    soi.UOMCode = "ea";
+                    soi.KitItemFlag = true;
+                    soi.KitItemFlagSpecified = true;
+                    ret.Add(soi);
+                }
+            }
+            else
+            {
+                ret.Add(i);
+            }
+
+
+            return ret;
         }
 
         private void ValidateCarriers(List<eBayFBOrder> ofOrders)

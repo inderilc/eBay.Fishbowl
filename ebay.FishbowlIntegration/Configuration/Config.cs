@@ -91,7 +91,7 @@ namespace eBay.FishbowlIntegration.Configuration
     public class SyncOrderSettings
     {
         public Dictionary<String, String> OrderQueue { get; set; }
-
+        public String TestOrderID { get; set; }
         public Dictionary<String, String> PaymentMethodsToAccounts { get; set; }
 
         public DateTime LastDownloads { get; set; }

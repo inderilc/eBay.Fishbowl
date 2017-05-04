@@ -46,7 +46,31 @@ namespace ebay.FishbowlIntegration.Controller
                 //context.ApiLogManager.EnableLogging = false;
             }
         }
+        public OrderType GetTestOrder(String orderID)
+        {
 
+            OrderTypeCollection order = new OrderTypeCollection();
+            GetOrdersCall getOrder = new GetOrdersCall(context);
+            getOrder.DetailLevelList = new DetailLevelCodeTypeCollection();
+            getOrder.DetailLevelList.Add(DetailLevelCodeType.ReturnAll);
+            getOrder.OrderIDList = new StringCollection(new[] { orderID });
+            getOrder.Execute();
+            if (getOrder.ApiResponse.Ack != AckCodeType.Failure)
+            {
+                //Check if any orders are returned
+                if (getOrder.ApiResponse.OrderArray.Count != 0)
+                {
+                    order = getOrder.ApiResponse.OrderArray;       
+                }
+                foreach (OrderType o in order)
+                {
+                    return o;
+                }
+            }
+            
+                return null;
+
+        }
         public OrderTypeCollection allCompletedOrders(String LastOrderDownload)
         {
             OrderTypeCollection orders = new OrderTypeCollection();
@@ -101,6 +125,7 @@ namespace ebay.FishbowlIntegration.Controller
                 }
                 foreach (OrderType o in orders)
                 {
+
                     if (o.PaidTime.ToLocalTime() > dateOut)
                     {
                         retOrders.Add(o);

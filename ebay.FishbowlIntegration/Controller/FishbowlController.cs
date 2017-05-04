@@ -16,7 +16,7 @@ namespace eBay.FishbowlIntegration.Controller
     public class FishbowlController : IDisposable
     {
         private Config cfg;
-        private FbConnection db { get; set; }
+        public FbConnection db { get; set; }
         public FishbowlSDK.Fishbowl api { get; set; }
         public FishbowlController(Config cfg)
         {
